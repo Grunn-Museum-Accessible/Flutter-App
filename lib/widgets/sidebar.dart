@@ -25,6 +25,13 @@ class _NavBarState extends State<NavBar> {
 
 
       pages.forEach((key, value) {
+        if (pages[key]!.containsKey('hide')) {
+          // add the key hide to routes object to hide them from the sidebar
+          if (pages[key]!['hide']) {
+            return;
+          }
+        }
+
         if (pages[key]!.containsKey('children')) {
           
           dynamic children = pages[key]!['children'];
