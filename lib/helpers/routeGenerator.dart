@@ -14,7 +14,7 @@ Map<String, Widget Function(BuildContext)> generateRoutesMap(
       if (pages[key]!['route'] != Null) {
         String routeKey = key.replaceAll(RegExp('\\s+'), '_').toLowerCase();
         routesMap.addAll({
-          routePrefix + routeKey: (context) => pages[key]!['route'](GLOBALS_PAGES)
+          routePrefix + routeKey: (context) => pages[key]!['route'](globalsPages)
         });
       }
     } 

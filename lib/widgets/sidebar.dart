@@ -48,7 +48,9 @@ class _NavBarState extends State<NavBar> {
             Column(
               children: [
                 ListTile(
-                  trailing: Icon(widget.navbarVisibility[widgetVisibilityKey] == true ? Icons.arrow_drop_up: Icons.arrow_drop_down),
+                  trailing: Icon(widget.navbarVisibility[widgetVisibilityKey] == true
+                        ? Icons.arrow_drop_up
+                        : Icons.arrow_drop_down),
                   title: Padding(
                     padding: EdgeInsets.only(left: 18.0*level),
                     child: Text(
@@ -121,4 +123,3 @@ class _NavBarState extends State<NavBar> {
     );
   }
 }
-

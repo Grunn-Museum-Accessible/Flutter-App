@@ -1,7 +1,7 @@
 import 'package:app/pages/home.dart';
 import 'package:app/pages/routesTest.dart';
 
-Map<String, Map<String, dynamic>> GLOBALS_PAGES = {
+final Map<String, Map<String, dynamic>> globalsPages = {
   'home': {
     'route': (Map<String, dynamic> routes) => HomeScreen(pages: routes),
   },
