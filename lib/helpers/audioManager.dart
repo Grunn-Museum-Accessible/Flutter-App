@@ -37,7 +37,6 @@ class AudioManager {
   }
 
   void playStream(String audioSource) async {
-    print(playing);
     if (playing.containsKey(audioSource)) {
       playing[audioSource]!.seek(Duration.zero);
 
