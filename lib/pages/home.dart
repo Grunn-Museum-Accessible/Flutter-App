@@ -14,28 +14,25 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
     return Scaffold(
-        key: _scaffoldKey,
-        drawer: Drawer(),
-        appBar: AppBar(
-          leading: Builder(builder: (context) {
-            return IconButton(
-              icon: Icon(Icons.menu),
-              onPressed: () {
-                print(_scaffoldKey.currentState!.hasDrawer);
-                Scaffold.of(context).openDrawer();
-              },
-            );
-          }),
-          title: Center(
-            child: SvgPicture.asset(
-              'assets/images/groningerMuseumLogo.svg',
-              semanticsLabel: 'Logo groninger museum',
-            ),
+      key: _scaffoldKey,
+      drawer: Sidebar(pages: pages),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.menu),
+          onPressed: () {
+            _scaffoldKey.currentState!.openDrawer();
+          },
+        ),
+        title: Center(
+          child: SvgPicture.asset(
+            'assets/images/groningerMuseumLogo.svg',
+            semanticsLabel: 'Logo groninger museum',
           ),
         ),
-        body: Center(
-            child: Text(
-          ModalRoute.of(context)?.settings.name ?? 'unkown route',
-        )));
+      ),
+      body: Center(
+        child: Text('Home page '),
+      ),
+    );
   }
 }

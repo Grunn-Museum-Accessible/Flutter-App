@@ -35,11 +35,17 @@ class AudioManager {
   }
 
   void playStream(String audioSource) async {
+    if (playing.containsKey(audioSource)) {
+      playing[audioSource]!.seek(Duration.zero);
+
+      return;
+    }
+
     AudioPlayer player = await cache.play(audioSource);
     playing.addAll({audioSource: player});
 
     lowerVol.forEach((stream, lowervol) {
-      if (stream != audioSource || playing.entries.length <= 2) {
+      if (stream != audioSource) {
         if (lowervol) {
           playing[stream]?.setVolume(0.2);
         }
@@ -48,11 +54,10 @@ class AudioManager {
 
     player.onPlayerCompletion.listen((event) {
       playing.remove(audioSource);
-      if (playing.keys.length <= 1) {
-        playing.forEach((stream, player) {
-          player.setVolume(1);
-        });
-      }
+
+      playing.forEach((stream, player) {
+        player.setVolume(1);
+      });
     });
   }
 }

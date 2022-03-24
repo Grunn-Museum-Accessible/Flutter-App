@@ -1,5 +1,3 @@
-// ignore_for_file: lines_longer_than_80_chars
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -109,10 +107,14 @@ class _SidebarState extends State<Sidebar> {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-        child: ListView(padding: EdgeInsets.zero, children: [
-      DrawerHeader(
-          child: SvgPicture.asset('assets/images/groningerMuseumLogo.svg')),
-      ..._genWidgets(widget.pages)
-    ]));
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          DrawerHeader(
+              child: SvgPicture.asset('assets/images/groningerMuseumLogo.svg')),
+          ..._genWidgets(widget.pages)
+        ],
+      ),
+    );
   }
 }
