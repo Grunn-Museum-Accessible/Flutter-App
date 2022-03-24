@@ -32,9 +32,12 @@ class AudioManager {
     playing.forEach((source, player) {
       player.stop();
     });
+
+    playing.clear();
   }
 
   void playStream(String audioSource) async {
+    print(playing);
     if (playing.containsKey(audioSource)) {
       playing[audioSource]!.seek(Duration.zero);
 
