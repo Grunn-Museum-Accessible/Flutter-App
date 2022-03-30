@@ -13,6 +13,7 @@ final Map<String, Map<String, dynamic>> globalsPages = {
   },
   'Routes Beheren': {
     'role': 'admin',
+    'route': (Map<String, dynamic> routes) => RoutesTestScreen(pages: routes),
     'children': {
       'nieuwe maken': {
         'route': (Map<String, dynamic> routes) =>
