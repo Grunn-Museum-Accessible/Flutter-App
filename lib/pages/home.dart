@@ -1,3 +1,5 @@
+import 'package:app/helpers/globals.dart';
+import 'package:app/pages/artPage.dart';
 import 'package:app/widgets/sidebar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -30,9 +32,7 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: Center(
-        child: Text('Home page '),
-      ),
+      body: Center(child: Text('Home pagina')),
     );
   }
 }
