@@ -9,7 +9,9 @@ class ArtPage extends StatefulWidget {
 
   ArtPage({required this.pages, required this.kunstwerk, Key? key})
       : super(key: key) {
-    audioManager.addStream(kunstwerk['audioFile'] ?? '', false);
+    if (kunstwerk.containsKey('audioFile')) {
+      audioManager.addStream(kunstwerk['audioFile'] ?? '', false);
+    }
   }
 
   @override
