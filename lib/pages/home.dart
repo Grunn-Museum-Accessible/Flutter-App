@@ -1,16 +1,41 @@
+import 'package:app/pages/device.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({ Key? key }) : super(key: key);
-
+  HomeScreen({Key? key}) : super(key: key);
   @override
   HomeScreenState createState() => HomeScreenState();
 }
 
 class HomeScreenState extends State<HomeScreen> {
-  bool paused = false;
-  bool started = false;
+  FlutterBlue flutterBlue = FlutterBlue.instance;
+  bool isScanning = false;
+  Set<ScanResult> foundDevices = Set();
+  List<Widget> foundDevicesWidgets = [];
+
+  void _startScan() async {
+    await Permission.bluetoothScan.request();
+    await Permission.bluetooth.request();
+    await Permission.bluetoothConnect.request();
+    await Permission.location.request();
+
+    await flutterBlue.stopScan();
+    await flutterBlue.startScan(timeout: Duration(seconds: 4));
+
+    var subscription = flutterBlue.scanResults.listen((results) {
+      print(results);
+      foundDevicesWidgets.clear();
+      setState(() {
+        foundDevicesWidgets = _buildConnectedDevices(results);
+        isScanning = false;
+      });
+    });
+
+    flutterBlue.stopScan();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,68 +49,65 @@ class HomeScreenState extends State<HomeScreen> {
       body: Center(
         child: Column(
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (started) Container(
-                  child: buildButton(paused ? 'Hervatten' : 'Pauzeren', 0.30,
-                    Colors.grey, () => setState(() => paused = !paused)),
-                  margin: EdgeInsets.fromLTRB(0, 25, 10, 25),
-                ),
-                Container(
-                  child: buildButton(
-                    started ? 'Stop Route' : 'Start Route', 
-                    started ? 0.50 : 0.85, 
-                    started ? Colors.red : Colors.green,
-                    () => setState(() {
-                      started = !started;
-                      paused = false;
-                    }),
-                  ),
-                  margin: started 
-                    ? EdgeInsets.fromLTRB(10, 25, 0, 25)
-                    : EdgeInsets.all(25),
-                ),
-              ],
-            ),
-            Divider(
-              color: Colors.grey,
-              indent: 25,
-              endIndent: 25,
-            ),
-            Container(
-              child: buildButton('Terug naar start', 0.85, Colors.orange, () => setState(() {
-                  started = true;
-                  paused = false;
-                }),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  isScanning = true;
+                });
+                _startScan();
+              },
+              child: Text(
+                'Start Scanning',
+                style: TextStyle(color: Colors.black),
               ),
-              margin: EdgeInsets.all(25),
             ),
+            Visibility(
+              visible: !isScanning,
+              child: SizedBox(
+                height: 500.0,
+                child: ListView(
+                  children: foundDevicesWidgets,
+                ),
+              ),
+              replacement: Expanded(
+                child: Center(
+                  child: CircularProgressIndicator(
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+            ),
+            // if (isScanning && foundDevicesWidgets.isEmpty)
           ],
         ),
       ),
     );
   }
 
-  TextButton buildButton(
-    String text, 
-    double width,
-    Color color,
-    VoidCallback callback,
-  ) {
-    return TextButton(
-      child: Text(text, textScaleFactor: 1.5),
-      onPressed: callback,
-      style: TextButton.styleFrom(
-        minimumSize: Size(
-          MediaQuery.of(context).size.width * width,
-          MediaQuery.of(context).size.width * 0.30,
+  List<Widget> _buildConnectedDevices(List<ScanResult> devices) {
+    List<Widget> widgets = [];
+
+    devices.forEach((d) {
+      widgets.add(ListTile(
+        title: Text(d.device.name),
+        subtitle: Text(d.device.id.toString()),
+        trailing: TextButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ConnectedDeviceScreen(device: d.device),
+              ),
+            );
+          },
+          child: Text(
+            'Connect',
+            style: TextStyle(color: Colors.black),
+          ),
         ),
-        backgroundColor: color,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(15)),
-        ),
-      ),
-    );
+      ));
+    });
+    print(widgets);
+    return widgets;
   }
 }
