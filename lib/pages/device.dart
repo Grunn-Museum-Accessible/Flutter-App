@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:math' as Math;
 
 import 'package:app/helpers/ble.dart';
 import 'package:app/widgets/positioningVirtualiser.dart';
@@ -20,13 +21,20 @@ class ConnectedDeviceScreenState extends State<ConnectedDeviceScreen> {
   late BleDevice bleDevice;
   String rot1Val = '0';
   String rot2Val = '0';
-  List<int> rot1 = [0, 0, 0];
-  List<int> rot2 = [0, 0, 0];
+  List<int> rot1 = [20, 20, 20];
+  List<int> rot2 = [20, 20, 20];
+  List<List<int>> route = [
+    [20, 200],
+    [100, 400],
+    [300, 600]
+  ];
 
   List<String> guids = [
     '667f1c78-be2e-11ec-9d64-0242ac120002', // rot 1
     '667f1c78-be2e-11ec-9d64-0242ac120003' // rot 2
   ];
+
+  num arrowAngle = 0;
 
   @override
   void dispose() {
@@ -103,13 +111,31 @@ class ConnectedDeviceScreenState extends State<ConnectedDeviceScreen> {
                     'Distance of anchor 2: ' + rot2Val,
                     style: TextStyle(fontSize: 30),
                   ),
-                  LayoutBuilder(builder:
-                      (BuildContext context, BoxConstraints constraints) {
-                    return PositioningVisualiser(
-                      anchors: [rot1, rot2],
-                      getRots: getAnchorInfo,
-                    );
-                  }),
+                  Stack(
+                    children: [
+                      LayoutBuilder(builder:
+                          (BuildContext context, BoxConstraints constraints) {
+                        return PositioningVisualiser(
+                          anchors: [rot1, rot2],
+                          getRots: getAnchorInfo,
+                          route: route,
+                          setAngle: setAngle,
+                          maxOffline: 100,
+                        );
+                      }),
+                      Positioned(
+                        right: 0,
+                        child: Transform.rotate(
+                          angle: degToRadians(arrowAngle.toDouble()),
+                          child: Image.asset(
+                            'assets/images/arrow.png',
+                            height: 100,
+                          ),
+                        ),
+                      )
+                      // SvgPicture.asset('assets/images/arrow.svg')
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -119,14 +145,20 @@ class ConnectedDeviceScreenState extends State<ConnectedDeviceScreen> {
     );
   }
 
+  double degToRadians(num deg) {
+    return deg * Math.pi / 180;
+  }
+
+  void setAngle(num angle) {
+    // log(angle.toString());
+    arrowAngle = angle;
+  }
+
   List<List<int>> getAnchorInfo() {
     return [rot1, rot2];
   }
 }
 
 bool isNumeric(String s) {
-  if (s == null) {
-    return false;
-  }
   return double.tryParse(s) != null;
 }
