@@ -2,8 +2,8 @@ import 'dart:developer';
 import 'dart:math' as Math;
 
 import 'package:app/helpers/ble.dart';
-import 'package:app/widgets/positioningVirtualiser.dart';
-import 'package:flutter/material.dart';
+import 'package:app/libs/PositioningVisualizer/positioningVisualiser.dart';
+import 'package:flutter/material.dart' hide Route;
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -23,11 +23,11 @@ class ConnectedDeviceScreenState extends State<ConnectedDeviceScreen> {
   String rot2Val = '0';
   List<int> rot1 = [20, 20, 20];
   List<int> rot2 = [20, 20, 20];
-  List<List<int>> route = [
+  Route route = Route.fromList([
     [20, 200],
     [100, 400],
     [300, 600]
-  ];
+  ]);
 
   List<String> guids = [
     '667f1c78-be2e-11ec-9d64-0242ac120002', // rot 1
@@ -116,8 +116,7 @@ class ConnectedDeviceScreenState extends State<ConnectedDeviceScreen> {
                       LayoutBuilder(builder:
                           (BuildContext context, BoxConstraints constraints) {
                         return PositioningVisualiser(
-                          anchors: [rot1, rot2],
-                          getRots: getAnchorInfo,
+                          getAnchorInfo: getAnchorInfo,
                           route: route,
                           setAngle: setAngle,
                           maxOffline: 100,
@@ -125,8 +124,10 @@ class ConnectedDeviceScreenState extends State<ConnectedDeviceScreen> {
                       }),
                       Positioned(
                         right: 0,
-                        child: Transform.rotate(
-                          angle: degToRadians(arrowAngle.toDouble()),
+                        child: AnimatedRotation(
+                          curve: Curves.easeInOut,
+                          duration: Duration(milliseconds: 300),
+                          turns: arrowAngle.toDouble() / 360,
                           child: Image.asset(
                             'assets/images/arrow.png',
                             height: 100,
@@ -154,8 +155,8 @@ class ConnectedDeviceScreenState extends State<ConnectedDeviceScreen> {
     arrowAngle = angle;
   }
 
-  List<List<int>> getAnchorInfo() {
-    return [rot1, rot2];
+  List<Anchor> getAnchorInfo() {
+    return [Anchor.fromList(rot1), Anchor.fromList(rot2)];
   }
 }
 

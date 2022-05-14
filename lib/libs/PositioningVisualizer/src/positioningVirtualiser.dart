@@ -1,25 +1,44 @@
-import 'dart:developer' as dev;
-import 'dart:math';
+// ignore_for_file: always_use_package_imports
 
-import 'package:flutter/material.dart';
+import 'dart:math';
+import 'package:flutter/material.dart' hide Route;
+
+import './anchor.dart';
+import './line.dart';
+import './point.dart';
+
 import 'package:p5/p5.dart';
 
-typedef Line = List<List<num>>;
-typedef Point = List<num>;
+class Route {
+  late List<Line> parts;
+
+  Route(this.parts);
+  Route.fromList(List<List<num>> list) {
+    parts = [];
+    for (int i = 0; i < list.length - 1; i++) {
+      parts.add(Line.fromList([list[i], list[i + 1]]));
+    }
+  }
+
+  get length {
+    return parts.length;
+  }
+}
+
+// typedef Line = List<List<num>>;
+// typedef Point = List<num>;
 
 class PositioningVisualiser extends StatefulWidget {
-  List<Point> Function() getRots;
-  void Function(num angle) setAngle;
+  final List<Anchor> Function() getAnchorInfo;
+  final void Function(num angle) setAngle;
 
-  List<Point> anchors;
-  List<Point> route;
+  final Route route;
 
-  num maxOffline;
+  final num maxOffline;
 
   PositioningVisualiser(
       {Key? key,
-      required this.anchors,
-      required this.getRots,
+      required this.getAnchorInfo,
       required this.route,
       required this.setAngle,
       required this.maxOffline})
@@ -37,8 +56,9 @@ class _PositioningVisualiserState extends State<PositioningVisualiser>
   @override
   void initState() {
     super.initState();
+
     sketch = MySketch(
-      widget.getRots,
+      widget.getAnchorInfo,
       widget.route,
       widget.setAngle,
       widget.maxOffline,
@@ -74,9 +94,9 @@ class _PositioningVisualiserState extends State<PositioningVisualiser>
 }
 
 class MySketch extends PPainter {
-  List<Point> Function() getAnchors;
+  List<Anchor> Function() getAnchors;
   void Function(num angle) setAngle;
-  Line route;
+  Route route;
   Point? previousLoc;
 
   num maxOffline;
@@ -96,7 +116,7 @@ class MySketch extends PPainter {
     background(color(255, 255, 255));
 
     strokeWeight(1);
-    List<Point> anchors = getAnchors();
+    List<Anchor> anchors = getAnchors();
     drawAnchors(anchors);
     drawPath(route);
 
@@ -107,25 +127,24 @@ class MySketch extends PPainter {
     }
 
     previousLoc = intersection;
-    Point point = getClosestPointOnPath(intersection, route);
+    Point point = getClosestPointOnRoute(intersection, route);
     drawPoints([intersection, point]);
 
-    drawLine(previousLoc![0], previousLoc![1], point[0], point[1]);
-    num angleOfLine = getAngleOfLine([intersection, point]);
+    drawLine(
+      previousLoc!.x,
+      previousLoc!.y,
+      point.x,
+      point.y,
+    );
 
-    // num distanceToLine = getLenghtOfLine([intersection, point]).abs();
-
-    // if (distanceToLine > 100) {
+    num angleOfLine = getAngleOfLine(Line(intersection, point));
     angleOfLine += 90;
-    // } else {
-    //   angleOfLine += scaleBetween(distanceToLine, 0, 90, 0, 100);
-    // }
     setAngle(angleOfLine);
   }
 
   bool isLeftOfLine(Point point, Line line) {
-    return ((line[1][0] - line[0][0]) * (point[1] - line[0][1]) -
-            (line[1][1] - line[0][1]) * (point[0] - line[0][0])) >
+    return ((line.end.x - line.start.x) * (point.y - line.start.y) -
+            (line.end.y - line.start.y) * (point.x - line.start.x)) >
         0;
   }
 
@@ -147,18 +166,18 @@ class MySketch extends PPainter {
   }
 
   num getLenghtOfLine(Line line) {
-    num x = line[1][0] - line[0][0];
-    num y = line[1][1] - line[0][1];
+    num x = line.end.x - line.start.x;
+    num y = line.end.y - line.start.y;
 
     return sqrt(x * x + y * y);
   }
 
   Point getClosestPointOnLine(Point point, Line line) {
-    num a = point[0] - line[0][0];
-    num b = point[1] - line[0][1];
+    num a = point.x - line.start.x;
+    num b = point.y - line.start.y;
 
-    num c = line[1][0] - line[0][0];
-    num d = line[1][1] - line[0][1];
+    num c = line.end.x - line.start.x;
+    num d = line.end.y - line.start.y;
 
     num dot = a * c + b * d;
     num lenSq = c * c + d * d;
@@ -171,30 +190,30 @@ class MySketch extends PPainter {
     num xx, yy = 0;
 
     if (param < 0) {
-      xx = line[0][0];
-      yy = line[0][1];
+      xx = line.start.x;
+      yy = line.start.y;
     } else if (param > 1) {
-      xx = line[1][0];
-      yy = line[1][1];
+      xx = line.end.x;
+      yy = line.end.y;
     } else {
-      xx = line[0][0] + param * c;
-      yy = line[0][1] + param * d;
+      xx = line.start.x + param * c;
+      yy = line.start.y + param * d;
     }
 
-    return [xx, yy];
+    return Point(xx, yy);
   }
 
   num getDistanceToLine(Point point, Line line) {
     var closestPoint = getClosestPointOnLine(point, line);
-    num dx = point[0] - closestPoint[0];
-    num dy = point[1] - closestPoint[1];
+    num dx = point.x - closestPoint.x;
+    num dy = point.y - closestPoint.y;
 
     return sqrt(dx * dx + dy * dy);
   }
 
   num getAngleOfLine(Line line) {
-    num dx = line[1][0] - line[0][0];
-    num dy = line[1][1] - line[0][1];
+    num dx = line.end.x - line.start.x;
+    num dy = line.end.y - line.start.y;
 
     num theta = atan2(dy, dx) * (180 / pi);
     if (theta < 0) theta += 360;
@@ -202,17 +221,15 @@ class MySketch extends PPainter {
     return theta;
   }
 
-  List<Point> getIntersections(List<Point> anchors) {
-    num x1 = anchors[0][0];
-    num y1 = anchors[0][1];
-    num r1 = anchors[0][2];
+  List<Point> getIntersections(List<Anchor> anchors) {
+    num x1 = anchors[0].x;
+    num y1 = anchors[0].y;
+    num r1 = anchors[0].distance;
 
-    num x2 = anchors[1][0];
-    num y2 = anchors[1][1];
-    num r2 = anchors[1][2];
+    num r2 = anchors[1].distance;
 
-    num dx = x2 - x1;
-    num dy = y2 - y1;
+    num dx = anchors[1].x - x1;
+    num dy = anchors[1].y - y1;
 
     int d = sqrt(dx * dx + dy * dy).round();
 
@@ -227,50 +244,51 @@ class MySketch extends PPainter {
     num cmpx = x1 + ((cd * dx) / d);
     num cmpy = y1 + ((cd * dy) / d);
 
-    var i1 = [
+    var i1 = Point(
       (cmpx + (hcl * dy) / d).round(),
       (cmpy - (hcl * dx) / d).round(),
-    ];
-    var i2 = [
+    );
+    var i2 = Point(
       (cmpx - (hcl * dy) / d).round(),
       (cmpy + (hcl * dx) / d).round(),
-    ];
+    );
+
     return [i1, i2];
-    // return [
-    //   [100, 100]
-    // ];
   }
 
-  Line getClosestPartOfPath(Point point, Line pathPoints) {
-    var line = [pathPoints[0], pathPoints[1]];
-    num closest = getDistanceToLine(point, line);
+  Line getClosestPartOfRoute(Point point, Route route) {
+    num closest = getDistanceToLine(point, route.parts.first);
+    Line line = route.parts.first;
 
-    for (int i = 1; i < pathPoints.length - 1; i++) {
-      num distance =
-          getDistanceToLine(point, [pathPoints[i], pathPoints[i + 1]]);
+    for (int i = 1; i < route.length; i++) {
+      num distance = getDistanceToLine(point, route.parts[i]);
       if (distance < closest) {
         closest = distance;
-        line = [pathPoints[i], pathPoints[i + 1]];
+        line = route.parts[i];
       }
     }
 
     return line;
   }
 
-  Point getClosestPointOnPath(
+  Point getClosestPointOnRoute(
     Point point,
-    Line path,
+    Route path,
   ) {
-    Line pathPart = getClosestPartOfPath(point, path);
+    Line pathPart = getClosestPartOfRoute(point, path);
     return getClosestPointOnLine(point, pathPart);
   }
 
-  void drawPath(Line pathPoints) {
+  void drawPath(Route route) {
     strokeWeight(5);
     stroke(Colors.black);
-    for (int i = 0; i < pathPoints.length - 1; i++) {
-      line(pathPoints[i][0].toDouble(), pathPoints[i][1].toDouble(),
-          pathPoints[i + 1][0].toDouble(), pathPoints[i + 1][1].toDouble());
+    for (int i = 0; i < route.length; i++) {
+      line(
+        route.parts[i].start.x.toDouble(),
+        route.parts[i].start.y.toDouble(),
+        route.parts[i].end.x.toDouble(),
+        route.parts[i].end.y.toDouble(),
+      );
     }
   }
 
@@ -280,24 +298,32 @@ class MySketch extends PPainter {
     intersections.forEach((i) {
       fill(Colors.black);
       paintCanvas.drawCircle(
-          Offset(i[0].toDouble(), i[1].toDouble()), 10, fillPaint);
+        i.toOffset(),
+        10,
+        fillPaint,
+      );
     });
   }
 
-  void drawAnchors(List<Point> anchors) {
+  void drawAnchors(List<Anchor> anchors) {
     strokeWeight(5);
     anchors.forEach((pos) {
       stroke(Colors.black);
       fill(Color.fromARGB(106, 244, 67, 54));
-      paintCanvas.drawCircle(Offset(pos[0].toDouble(), pos[1].toDouble()),
-          pos[2].toDouble(), strokePaint);
+      paintCanvas.drawCircle(
+        pos.coordsToOffset(),
+        pos.distance.toDouble(),
+        strokePaint,
+      );
 
-      paintCanvas.drawCircle(Offset(pos[0].toDouble(), pos[1].toDouble()),
-          pos[2].toDouble(), fillPaint);
+      paintCanvas.drawCircle(
+        pos.coordsToOffset(),
+        pos.distance.toDouble(),
+        fillPaint,
+      );
 
       fill(Colors.black);
-      paintCanvas.drawCircle(
-          Offset(pos[0].toDouble(), pos[1].toDouble()), 5, fillPaint);
+      paintCanvas.drawCircle(pos.pos.toOffset(), 5, fillPaint);
     });
   }
 
@@ -311,20 +337,19 @@ class MySketch extends PPainter {
     // calculate the most likely position
     Point mostLikely = intersections[0];
 
-    // get the distance from previous pos
     num closest = -1;
     intersections.forEach((element) {
-      num dist = distanceBetweenPoints(element, previousLoc ?? [0, 0]);
+      // get the distance from previous pos
+      num dist = distanceBetweenPoints(element, previousLoc ?? Point(0, 0));
       if (closest == -1 || closest > dist) {
         closest = dist;
         mostLikely = element;
       }
     });
-    // return [closest[1]];
     return mostLikely;
   }
 
   num distanceBetweenPoints(Point point1, Point point2) {
-    return sqrt(pow(point2[0] - point1[0], 2) + pow(point2[1] - point1[1], 2));
+    return sqrt(pow(point2.x - point1.x, 2) + pow(point2.y - point1.y, 2));
   }
 }
