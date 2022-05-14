@@ -1,6 +1,7 @@
 // ignore_for_file: always_use_package_imports
 
-import 'dart:math';
+import 'dart:developer';
+import 'dart:math' hide log;
 import 'package:flutter/material.dart' hide Route;
 
 import './anchor.dart';
@@ -22,6 +23,13 @@ class Route {
 
   get length {
     return parts.length;
+  }
+
+  Line? getNextPart(current) {
+    if (parts.last == current) {
+      return null;
+    }
+    return parts[parts.indexOf(current) + 1];
   }
 }
 
@@ -127,19 +135,57 @@ class MySketch extends PPainter {
     }
 
     previousLoc = intersection;
-    Point point = getClosestPointOnRoute(intersection, route);
-    drawPoints([intersection, point]);
+    // calulate the closest line and the angle and distance towards it.
+    Point closestPoint = getClosestPointOnRoute(intersection, route);
+    num angleOfLine = getAngleOfLine(Line(intersection, closestPoint));
+    num distanceToClosestPoint =
+        getLenghtOfLine(Line(intersection, closestPoint));
 
-    drawLine(
-      previousLoc!.x,
-      previousLoc!.y,
-      point.x,
-      point.y,
-    );
+    Point nextWaypoint = closestPoint;
 
-    num angleOfLine = getAngleOfLine(Line(intersection, point));
-    angleOfLine += 90;
+    if (distanceToClosestPoint > 100) {
+      angleOfLine += 90;
+    } else {
+      // you are within a distance of the line
+
+      // get the closest part of the route to the current possition
+      Line closestLine = getClosestPartOfRoute(intersection, route);
+      // if the closest point is the end of the line we route to the next part
+      num angleToEndOfLine = 0;
+      if (getLenghtOfLine(Line(closestPoint, closestLine.end)) < 30) {
+        // get the next line to get its end. if there are no parts left
+        // we take the current line
+        Line nextLine = route.getNextPart(closestLine) ?? closestLine;
+        nextWaypoint = nextLine.end;
+
+        // calculate the angle to the next waypoint
+        angleOfLine = getAngleOfLine(
+          Line(
+            intersection,
+            nextLine.end,
+          ),
+        );
+      } else {
+        nextWaypoint = closestPoint;
+
+        angleOfLine = getAngleOfLine(Line(
+          intersection,
+          closestLine.end,
+        ));
+      }
+
+      num combiningFactor =
+          scaleBetween(distanceToClosestPoint, -angleToEndOfLine, 0, 0, 100) *
+              -1;
+      // log(combiningFactor.toString());
+      angleOfLine += 90;
+    }
+
     setAngle(angleOfLine);
+
+    // draw line to nesxt waypoint
+    drawLine(intersection, nextWaypoint);
+    drawPoints([intersection, nextWaypoint]);
   }
 
   bool isLeftOfLine(Point point, Line line) {
@@ -159,10 +205,15 @@ class MySketch extends PPainter {
         minAllowed;
   }
 
-  void drawLine(num x1, num y1, num x2, num y2) {
+  void drawLine(Point start, Point end) {
     stroke(Colors.black);
-    strokeWeight(2);
-    line(x1.toDouble(), y1.toDouble(), x2.toDouble(), y2.toDouble());
+    strokeWeight(4);
+    line(
+      start.x.toDouble(),
+      start.y.toDouble(),
+      end.x.toDouble(),
+      end.y.toDouble(),
+    );
   }
 
   num getLenghtOfLine(Line line) {

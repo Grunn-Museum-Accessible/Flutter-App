@@ -18,4 +18,9 @@ class Point {
   static List<Point> fromListToListOfPoints(List<List<num>> e) {
     return e.map((e) => Point.fromList(e)).toList();
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Point && (other.x == x && other.y == y);
 }

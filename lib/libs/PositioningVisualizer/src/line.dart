@@ -9,4 +9,9 @@ class Line {
     start = Point.fromList(list[0]);
     end = Point.fromList(list[1]);
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Line && (other.start == start && other.end == end);
 }
