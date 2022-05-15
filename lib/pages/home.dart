@@ -1,7 +1,10 @@
+import 'dart:developer';
+
 import 'package:app/pages/device.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:nfc_manager/nfc_manager.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -12,8 +15,8 @@ class HomeScreen extends StatefulWidget {
 
 class HomeScreenState extends State<HomeScreen> {
   FlutterBlue flutterBlue = FlutterBlue.instance;
-  bool isScanning = false;
-  Set<ScanResult> foundDevices = Set();
+  bool isScanning = true;
+  List<ScanResult> foundDevices = [];
   List<Widget> foundDevicesWidgets = [];
 
   void _startScan() async {
@@ -25,9 +28,10 @@ class HomeScreenState extends State<HomeScreen> {
     await flutterBlue.stopScan();
     await flutterBlue.startScan(timeout: Duration(seconds: 4));
 
-    var subscription = flutterBlue.scanResults.listen((results) {
-      print(results);
+    flutterBlue.scanResults.listen((results) {
+      foundDevices = results;
       foundDevicesWidgets.clear();
+      log("BLE scan completed");
       setState(() {
         foundDevicesWidgets = _buildConnectedDevices(results);
         isScanning = false;
@@ -35,6 +39,53 @@ class HomeScreenState extends State<HomeScreen> {
     });
 
     flutterBlue.stopScan();
+  }
+
+  @override
+  void initState() {
+    _startScan();
+    NfcManager.instance.isAvailable().then(
+      (bool isAvailable) {
+        log("nfc checkable");
+
+        if (isAvailable) {
+          log('nfc available');
+          // Start Session
+          NfcManager.instance.startSession(
+            onDiscovered: (NfcTag tag) async {
+              log("tag discovered");
+              // print(tag.data);
+              // Do something with an NfcTag instance.
+              Ndef? ndef = Ndef.from(tag);
+              if (ndef == null) return;
+
+              NdefMessage msg = await ndef.read();
+              msg.records.forEach((element) {
+                String readValue = String.fromCharCodes(element.payload)
+                    .substring(3)
+                    .toUpperCase();
+
+                log(readValue);
+
+                foundDevices.forEach((dev) {
+                  if (dev.device.id.toString() == readValue) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ConnectedDeviceScreen(
+                          device: dev.device,
+                        ),
+                      ),
+                    );
+                  }
+                });
+              });
+            },
+          );
+        }
+      },
+    );
+    super.initState();
   }
 
   @override
@@ -46,40 +97,65 @@ class HomeScreenState extends State<HomeScreen> {
           child: SvgPicture.asset('assets/images/groningerMuseumLogo.svg'),
         ),
       ),
-      body: Center(
-        child: Column(
-          children: [
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  isScanning = true;
-                });
-                _startScan();
-              },
+      body: Column(
+        children: [
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
               child: Text(
-                'Start Scanning',
-                style: TextStyle(color: Colors.black),
-              ),
-            ),
-            Visibility(
-              visible: !isScanning,
-              child: SizedBox(
-                height: 500.0,
-                child: ListView(
-                  children: foundDevicesWidgets,
+                'Scan the device to connect or click on connect',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 24,
                 ),
               ),
-              replacement: Expanded(
-                child: Center(
-                  child: CircularProgressIndicator(
-                    color: Colors.black,
+            ),
+          ),
+          Divider(
+            color: Colors.black,
+          ),
+          Visibility(
+            visible: !isScanning,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
+                  child: Text('found devices',
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                ),
+                SizedBox(
+                  height: 500.0,
+                  child: RefreshIndicator(
+                    onRefresh: () async {
+                      _startScan();
+                    },
+                    child: ListView(
+                      children: foundDevicesWidgets,
+                      physics: const AlwaysScrollableScrollPhysics(),
+                    ),
                   ),
                 ),
+              ],
+            ),
+            replacement: Expanded(
+              child: Center(
+                child: Column(
+                  children: [
+                    Text(
+                      'Searching for devices',
+                      style: TextStyle(fontSize: 32),
+                    ),
+                    CircularProgressIndicator(
+                      color: Colors.black,
+                    ),
+                  ],
+                ),
               ),
             ),
-            // if (isScanning && foundDevicesWidgets.isEmpty)
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -107,7 +183,7 @@ class HomeScreenState extends State<HomeScreen> {
         ),
       ));
     });
-    print(widgets);
+    // print(widgets);
     return widgets;
   }
 }

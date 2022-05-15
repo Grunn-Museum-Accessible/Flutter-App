@@ -151,7 +151,6 @@ class MySketch extends PPainter {
       // get the closest part of the route to the current possition
       Line closestLine = getClosestPartOfRoute(intersection, route);
       // if the closest point is the end of the line we route to the next part
-      num angleToEndOfLine = 0;
       if (getLenghtOfLine(Line(closestPoint, closestLine.end)) < 30) {
         // get the next line to get its end. if there are no parts left
         // we take the current line
@@ -174,9 +173,9 @@ class MySketch extends PPainter {
         ));
       }
 
-      num combiningFactor =
-          scaleBetween(distanceToClosestPoint, -angleToEndOfLine, 0, 0, 100) *
-              -1;
+      // num combiningFactor =
+      //     scaleBetween(distanceToClosestPoint, -angleToEndOfLine, 0, 0, 100) *
+      //         -1;
       // log(combiningFactor.toString());
       angleOfLine += 90;
     }
