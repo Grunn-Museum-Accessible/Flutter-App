@@ -128,7 +128,8 @@ class ConnectedDeviceScreenState extends State<ConnectedDeviceScreen> {
                         );
                       }),
                       Positioned(
-                        right: 0,
+                        top: 10,
+                        right: 20,
                         child: AnimatedRotation(
                           curve: Curves.easeInOut,
                           duration: Duration(milliseconds: 300),

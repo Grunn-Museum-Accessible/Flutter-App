@@ -165,14 +165,13 @@ class MySketch extends PPainter {
           ),
         );
       } else {
-        nextWaypoint = closestPoint;
+        nextWaypoint = closestLine.end;
 
         angleOfLine = getAngleOfLine(Line(
           intersection,
           closestLine.end,
         ));
       }
-      nextWaypoint = (route.getNextPart(closestLine) ?? closestLine).end;
       angleOfLine += 90;
     }
 
