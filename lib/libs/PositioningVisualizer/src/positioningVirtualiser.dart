@@ -172,11 +172,7 @@ class MySketch extends PPainter {
           closestLine.end,
         ));
       }
-
-      // num combiningFactor =
-      //     scaleBetween(distanceToClosestPoint, -angleToEndOfLine, 0, 0, 100) *
-      //         -1;
-      // log(combiningFactor.toString());
+      nextWaypoint = (route.getNextPart(closestLine) ?? closestLine).end;
       angleOfLine += 90;
     }
 
@@ -184,7 +180,21 @@ class MySketch extends PPainter {
 
     // draw line to nesxt waypoint
     drawLine(intersection, nextWaypoint);
-    drawPoints([intersection, nextWaypoint]);
+    drawPoints([nextWaypoint]);
+
+    fill(Colors.green);
+    stroke(Colors.black);
+    strokeWeight(5);
+    paintCanvas.drawCircle(
+      intersection.toOffset(),
+      30,
+      fillPaint,
+    );
+    paintCanvas.drawCircle(
+      intersection.toOffset(),
+      30,
+      strokePaint,
+    );
   }
 
   bool isLeftOfLine(Point point, Line line) {
