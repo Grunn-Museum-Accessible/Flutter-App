@@ -12,8 +12,9 @@ import 'package:p5/p5.dart';
 
 class Route {
   late List<Line> parts;
-
+  Point? tempLast;
   Route(this.parts);
+
   Route.fromList(List<List<num>> list) {
     parts = [];
     for (int i = 0; i < list.length - 1; i++) {
@@ -21,8 +22,14 @@ class Route {
     }
   }
 
-  get length {
-    return parts.length;
+  get length => parts.length;
+  get start => length > 0 ? parts.first.start : null;
+  get end {
+    if (length > 0) {
+      return parts.last.end;
+    } else if (tempLast != null) {
+      return tempLast;
+    }
   }
 
   Line? getNextPart(current) {
@@ -30,6 +37,25 @@ class Route {
       return null;
     }
     return parts[parts.indexOf(current) + 1];
+  }
+
+  void removePartAt(int part) {
+    if (part == 0) {
+      parts.removeAt(part);
+    } else if (length == part) {
+      parts.removeLast();
+    } else if (length > part) {
+      parts.removeAt(part);
+      parts[part - 1].end = parts[part].start;
+    }
+  }
+
+  void addPart(Point point) {
+    if (length > 0 || tempLast != null) {
+      parts.add(Line(end, point));
+    } else {
+      tempLast = point;
+    }
   }
 }
 
@@ -136,50 +162,52 @@ class MySketch extends PPainter {
 
     previousLoc = intersection;
     // calulate the closest line and the angle and distance towards it.
-    Point closestPoint = getClosestPointOnRoute(intersection, route);
-    num angleOfLine = getAngleOfLine(Line(intersection, closestPoint));
-    num distanceToClosestPoint =
-        getLenghtOfLine(Line(intersection, closestPoint));
+    if (route.length > 0) {
+      Point closestPoint = getClosestPointOnRoute(intersection, route);
+      num angleOfLine = getAngleOfLine(Line(intersection, closestPoint));
+      num distanceToClosestPoint =
+          getLenghtOfLine(Line(intersection, closestPoint));
 
-    Point nextWaypoint = closestPoint;
+      Point nextWaypoint = closestPoint;
 
-    if (distanceToClosestPoint > 100) {
-      angleOfLine += 90;
-    } else {
-      // you are within a distance of the line
-
-      // get the closest part of the route to the current possition
-      Line closestLine = getClosestPartOfRoute(intersection, route);
-      // if the closest point is the end of the line we route to the next part
-      if (getLenghtOfLine(Line(closestPoint, closestLine.end)) < 30) {
-        // get the next line to get its end. if there are no parts left
-        // we take the current line
-        Line nextLine = route.getNextPart(closestLine) ?? closestLine;
-        nextWaypoint = nextLine.end;
-
-        // calculate the angle to the next waypoint
-        angleOfLine = getAngleOfLine(
-          Line(
-            intersection,
-            nextLine.end,
-          ),
-        );
+      if (distanceToClosestPoint > 100) {
+        angleOfLine += 90;
       } else {
-        nextWaypoint = closestLine.end;
+        // you are within a distance of the line
 
-        angleOfLine = getAngleOfLine(Line(
-          intersection,
-          closestLine.end,
-        ));
+        // get the closest part of the route to the current possition
+        Line closestLine = getClosestPartOfRoute(intersection, route);
+        // if the closest point is the end of the line we route to the next part
+        if (getLenghtOfLine(Line(closestPoint, closestLine.end)) < 30) {
+          // get the next line to get its end. if there are no parts left
+          // we take the current line
+          Line nextLine = route.getNextPart(closestLine) ?? closestLine;
+          nextWaypoint = nextLine.end;
+
+          // calculate the angle to the next waypoint
+          angleOfLine = getAngleOfLine(
+            Line(
+              intersection,
+              nextLine.end,
+            ),
+          );
+        } else {
+          nextWaypoint = closestLine.end;
+
+          angleOfLine = getAngleOfLine(Line(
+            intersection,
+            closestLine.end,
+          ));
+        }
+        angleOfLine += 90;
       }
-      angleOfLine += 90;
+
+      setAngle(angleOfLine);
+
+      // draw line to nesxt waypoint
+      drawLine(intersection, nextWaypoint);
+      drawPoints([nextWaypoint]);
     }
-
-    setAngle(angleOfLine);
-
-    // draw line to nesxt waypoint
-    drawLine(intersection, nextWaypoint);
-    drawPoints([nextWaypoint]);
 
     fill(Colors.green);
     stroke(Colors.black);
