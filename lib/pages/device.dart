@@ -20,6 +20,8 @@ class ConnectedDeviceScreen extends StatefulWidget {
 
 class ConnectedDeviceScreenState extends State<ConnectedDeviceScreen> {
   late BleDevice bleDevice;
+  late PositioningVisualiser positionVisualizer;
+
   String rot1Val = '0';
   String rot2Val = '0';
   List<int> rot1 = [20, 20, 20];
@@ -57,6 +59,13 @@ class ConnectedDeviceScreenState extends State<ConnectedDeviceScreen> {
       });
       _addListeneres();
     });
+
+    positionVisualizer = PositioningVisualiser(
+      getAnchorInfo: getAnchorInfo,
+      route: route,
+      setAngle: setAngle,
+      maxOffline: 100,
+    );
   }
 
   void _addListeneres() async {
@@ -96,10 +105,16 @@ class ConnectedDeviceScreenState extends State<ConnectedDeviceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color.fromARGB(255, 38, 38, 38),
       appBar: AppBar(
+        backgroundColor: Color.fromARGB(255, 38, 38, 38),
+        foregroundColor: Colors.white,
         elevation: 0,
         title: Center(
-          child: SvgPicture.asset('assets/images/groningerMuseumLogo.svg'),
+          child: SvgPicture.asset(
+            'assets/images/groningerMuseumLogo.svg',
+            color: Colors.white,
+          ),
         ),
       ),
       body: Container(
@@ -109,24 +124,27 @@ class ConnectedDeviceScreenState extends State<ConnectedDeviceScreen> {
             Center(
               child: Column(
                 children: [
-                  Text(
-                    'Distance of anchor 1: ' + rot1Val,
-                    style: TextStyle(fontSize: 30),
-                  ),
-                  Text(
-                    'Distance of anchor 2: ' + rot2Val,
-                    style: TextStyle(fontSize: 30),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Column(
+                      children: [
+                        Text(
+                          'Distance of anchor 1: ' + rot1Val,
+                          style: TextStyle(fontSize: 30, color: Colors.white),
+                        ),
+                        Text(
+                          'Distance of anchor 2: ' + rot2Val,
+                          style: TextStyle(fontSize: 30, color: Colors.white),
+                        ),
+                      ],
+                    ),
                   ),
                   Stack(
+                    alignment: Alignment.center,
                     children: [
                       LayoutBuilder(builder:
                           (BuildContext context, BoxConstraints constraints) {
-                        return PositioningVisualiser(
-                          getAnchorInfo: getAnchorInfo,
-                          route: route,
-                          setAngle: setAngle,
-                          maxOffline: 100,
-                        );
+                        return positionVisualizer;
                       }),
                       Positioned(
                         top: 10,
@@ -140,8 +158,31 @@ class ConnectedDeviceScreenState extends State<ConnectedDeviceScreen> {
                             height: 100,
                           ),
                         ),
+                      ),
+                      Positioned(
+                        bottom: 24,
+                        child: ElevatedButton(
+                          style: ButtonStyle(
+                            shape: MaterialStateProperty.all(
+                              CircleBorder(),
+                            ),
+                            backgroundColor: MaterialStateProperty.all(
+                              Color.fromARGB(255, 212, 255, 0),
+                            ),
+                          ),
+                          onPressed: () {
+                            positionVisualizer.addPoint();
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Icon(
+                              Icons.add,
+                              size: 48,
+                              color: Color.fromARGB(255, 38, 38, 38),
+                            ),
+                          ),
+                        ),
                       )
-                      // SvgPicture.asset('assets/images/arrow.svg')
                     ],
                   ),
                 ],

@@ -91,10 +91,16 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color.fromARGB(255, 38, 38, 38),
       appBar: AppBar(
+        backgroundColor: Color.fromARGB(255, 38, 38, 38),
+        foregroundColor: Colors.white,
         elevation: 0,
         title: Center(
-          child: SvgPicture.asset('assets/images/groningerMuseumLogo.svg'),
+          child: SvgPicture.asset(
+            'assets/images/groningerMuseumLogo.svg',
+            color: Colors.white,
+          ),
         ),
       ),
       body: Column(
@@ -107,6 +113,7 @@ class HomeScreenState extends State<HomeScreen> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 24,
+                  color: Colors.white,
                 ),
               ),
             ),
@@ -122,8 +129,11 @@ class HomeScreenState extends State<HomeScreen> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
                   child: Text('found devices',
-                      style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      )),
                 ),
                 SizedBox(
                   height: 500.0,
@@ -145,10 +155,16 @@ class HomeScreenState extends State<HomeScreen> {
                   children: [
                     Text(
                       'Searching for devices',
-                      style: TextStyle(fontSize: 32),
+                      style: TextStyle(
+                        fontSize: 32,
+                        color: Colors.white,
+                      ),
                     ),
-                    CircularProgressIndicator(
-                      color: Colors.black,
+                    Padding(
+                      padding: EdgeInsets.all(36),
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                      ),
                     ),
                   ],
                 ),
@@ -165,9 +181,24 @@ class HomeScreenState extends State<HomeScreen> {
 
     devices.forEach((d) {
       widgets.add(ListTile(
-        title: Text(d.device.name),
+        textColor: Colors.white,
+        title: Text(
+          d.device.name,
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         subtitle: Text(d.device.id.toString()),
-        trailing: TextButton(
+        trailing: ElevatedButton(
+          style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.all(
+                Color.fromARGB(255, 212, 255, 0),
+              ),
+              shape: MaterialStateProperty.all(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(
+                    Radius.zero,
+                  ),
+                ),
+              )),
           onPressed: () {
             Navigator.push(
               context,
@@ -178,7 +209,9 @@ class HomeScreenState extends State<HomeScreen> {
           },
           child: Text(
             'Connect',
-            style: TextStyle(color: Colors.black),
+            style: TextStyle(
+              color: Colors.black,
+            ),
           ),
         ),
       ));

@@ -13,6 +13,7 @@ import 'package:p5/p5.dart';
 class PositioningVisualiser extends StatefulWidget {
   final List<Anchor> Function() getAnchorInfo;
   final void Function(num angle) setAngle;
+  late final void Function() addPoint;
 
   final Route route;
 
@@ -45,6 +46,7 @@ class _PositioningVisualiserState extends State<PositioningVisualiser>
       widget.setAngle,
       widget.maxOffline,
     );
+    widget.addPoint = sketch.addPoint;
     // Need an animator to call the draw() method in the sketch continuously,
     // otherwise it will be called only when touch events are detected.
     animator = PAnimator(this);
@@ -68,7 +70,7 @@ class _PositioningVisualiserState extends State<PositioningVisualiser>
 
     return Container(
       // clipBehavior: Clip.hardEdge,
-      height: MediaQuery.of(context).size.height - 165,
+      height: MediaQuery.of(context).size.height - 181,
       width: MediaQuery.of(context).size.width,
       child: PWidget(sketch),
     );
@@ -103,7 +105,8 @@ class MySketch extends PPainter {
     drawPath(route);
 
     // check if there are intersections
-    Point? intersection = mostLikelyPosistion(getIntersections(anchors));
+    var intersections = getIntersections(anchors);
+    Point? intersection = mostLikelyPosistion(intersections);
     if (intersection == null) {
       return;
     }
@@ -170,6 +173,14 @@ class MySketch extends PPainter {
       30,
       strokePaint,
     );
+  }
+
+  void addPoint() {
+    List<Anchor> anchors = getAnchors();
+    Point? intersection = mostLikelyPosistion(getIntersections(anchors));
+    if (intersection != null) {
+      route.addPart(intersection);
+    }
   }
 
   bool isLeftOfLine(Point point, Line line) {
@@ -260,7 +271,6 @@ class MySketch extends PPainter {
     num x1 = anchors[0].x;
     num y1 = anchors[0].y;
     num r1 = anchors[0].distance;
-
     num r2 = anchors[1].distance;
 
     num dx = anchors[1].x - x1;
@@ -268,7 +278,7 @@ class MySketch extends PPainter {
 
     int d = sqrt(dx * dx + dy * dy).round();
 
-    if (d > r1 + r2) return [];
+    if (d > r1 + r2 || d == 0) return [];
 
     num cd = ((r1 * r1) - (r2 * r2) + (d * d)) / (2 * d);
     num t = ((r1 * r1) - (cd * cd));
@@ -344,7 +354,7 @@ class MySketch extends PPainter {
     strokeWeight(5);
     anchors.forEach((pos) {
       stroke(Colors.black);
-      fill(Color.fromARGB(106, 244, 67, 54));
+      fill(Color.fromARGB(100, 212, 255, 0));
       paintCanvas.drawCircle(
         pos.coordsToOffset(),
         pos.distance.toDouble(),
