@@ -13,7 +13,7 @@ class Anchor {
   }
 
   Offset coordsToOffset() {
-    return pos.toOffset();
+    return pos.offset;
   }
 
   /// anchorInfo[0] = x, anchorInfo[1] = y, anchorInfo[2] = distance

@@ -1,3 +1,5 @@
+import 'dart:convert' show jsonDecode;
+
 import 'package:flutter/material.dart';
 
 class Point {
@@ -10,9 +12,13 @@ class Point {
     y = coordinates[1];
   }
 
-  Offset toOffset() {
-    return Offset(x.toDouble(), y.toDouble());
+  Point.fromString(String json) {
+    var parsedJson = jsonDecode(json);
+    x = parsedJson['x'];
+    y = parsedJson['y'];
   }
+
+  get offset => Offset(x.toDouble(), y.toDouble());
 
   /// convert a 2d list to a list of points List<Point>
   static List<Point> fromListToListOfPoints(List<List<num>> e) {
@@ -23,4 +29,8 @@ class Point {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is Point && (other.x == x && other.y == y);
+
+  String toJson() {
+    return '{"x":"$x", "y":"$y"}';
+  }
 }

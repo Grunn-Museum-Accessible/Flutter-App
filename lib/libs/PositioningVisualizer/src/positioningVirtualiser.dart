@@ -1,7 +1,7 @@
 // ignore_for_file: always_use_package_imports
 
-import 'dart:developer';
 import 'dart:math' hide log;
+import 'package:app/libs/PositioningVisualizer/src/route.dart';
 import 'package:flutter/material.dart' hide Route;
 
 import './anchor.dart';
@@ -9,58 +9,6 @@ import './line.dart';
 import './point.dart';
 
 import 'package:p5/p5.dart';
-
-class Route {
-  late List<Line> parts;
-  Point? tempLast;
-  Route(this.parts);
-
-  Route.fromList(List<List<num>> list) {
-    parts = [];
-    for (int i = 0; i < list.length - 1; i++) {
-      parts.add(Line.fromList([list[i], list[i + 1]]));
-    }
-  }
-
-  get length => parts.length;
-  get start => length > 0 ? parts.first.start : null;
-  get end {
-    if (length > 0) {
-      return parts.last.end;
-    } else if (tempLast != null) {
-      return tempLast;
-    }
-  }
-
-  Line? getNextPart(current) {
-    if (parts.last == current) {
-      return null;
-    }
-    return parts[parts.indexOf(current) + 1];
-  }
-
-  void removePartAt(int part) {
-    if (part == 0) {
-      parts.removeAt(part);
-    } else if (length == part) {
-      parts.removeLast();
-    } else if (length > part) {
-      parts.removeAt(part);
-      parts[part - 1].end = parts[part].start;
-    }
-  }
-
-  void addPart(Point point) {
-    if (length > 0 || tempLast != null) {
-      parts.add(Line(end, point));
-    } else {
-      tempLast = point;
-    }
-  }
-}
-
-// typedef Line = List<List<num>>;
-// typedef Point = List<num>;
 
 class PositioningVisualiser extends StatefulWidget {
   final List<Anchor> Function() getAnchorInfo;
@@ -213,12 +161,12 @@ class MySketch extends PPainter {
     stroke(Colors.black);
     strokeWeight(5);
     paintCanvas.drawCircle(
-      intersection.toOffset(),
+      intersection.offset,
       30,
       fillPaint,
     );
     paintCanvas.drawCircle(
-      intersection.toOffset(),
+      intersection.offset,
       30,
       strokePaint,
     );
@@ -385,7 +333,7 @@ class MySketch extends PPainter {
     intersections.forEach((i) {
       fill(Colors.black);
       paintCanvas.drawCircle(
-        i.toOffset(),
+        i.offset,
         10,
         fillPaint,
       );
@@ -410,7 +358,7 @@ class MySketch extends PPainter {
       );
 
       fill(Colors.black);
-      paintCanvas.drawCircle(pos.pos.toOffset(), 5, fillPaint);
+      paintCanvas.drawCircle(pos.pos.offset, 5, fillPaint);
     });
   }
 

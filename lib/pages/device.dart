@@ -24,14 +24,14 @@ class ConnectedDeviceScreenState extends State<ConnectedDeviceScreen> {
   List<int> rot1 = [20, 20, 20];
   List<int> rot2 = [20, 20, 20];
   Route route = Route.fromList([
-    // [20, 200],
-    // [100, 400],
-    // [300, 600],
-    // [700, 400],
-    // [750, 300],
-    // [900, 200],
-    // [950, 200],
-    // [1100, 500]
+    [20, 200],
+    [100, 400],
+    [300, 600],
+    [700, 400],
+    [750, 300],
+    [900, 200],
+    [950, 200],
+    [1100, 500]
   ]);
 
   List<String> guids = [
