@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:app/libs/PositioningVisualizer/positioningVisualiser.dart';
+import 'package:app/libs/PositioningVisualizer/src/soundPoint.dart';
 
 class Route {
   late List<Line> parts;
@@ -17,19 +18,17 @@ class Route {
   Route.fromString(String source) {
     List<dynamic> parsed = jsonDecode(source);
     parts = [];
-    parsed.forEach((e) {
-      parts.add(
-        Line(
-          Point(
-            num.parse(e['start']['x']),
-            num.parse(e['start']['y']),
-          ),
-          Point(
-            num.parse(e['end']['x']),
-            num.parse(e['end']['y']),
-          ),
-        ),
-      );
+    parsed.forEach((element) {
+      // var startPointType = ;
+      List<Point> lineEnds = [];
+      ['start', 'end'].forEach((end) {
+        var pointTypeConst = element[end]['soundFile'] == null
+            ? Point.fromString
+            : SoundPoint.fromString;
+
+        lineEnds.add(pointTypeConst(jsonEncode(element)));
+      });
+      parts.add(Line.fromList(lineEnds));
     });
   }
   String toJson() {

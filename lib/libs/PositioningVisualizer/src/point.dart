@@ -19,6 +19,7 @@ class Point {
   }
 
   get offset => Offset(x.toDouble(), y.toDouble());
+  get hasSound => false;
 
   /// convert a 2d list to a list of points List<Point>
   static List<Point> fromListToListOfPoints(List<List<num>> e) {
