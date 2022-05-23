@@ -1,4 +1,5 @@
 import 'dart:convert' show jsonDecode;
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 
@@ -6,25 +7,29 @@ class Point {
   late num x;
   late num y;
 
-  Point(this.x, this.y);
-  Point.fromList(List<num> coordinates) {
-    x = coordinates[0];
-    y = coordinates[1];
-  }
+  late num? soundRange;
+  late String? soundFile;
 
+  Point(
+    this.x,
+    this.y, {
+    this.soundFile,
+    this.soundRange,
+  });
   Point.fromString(String json) {
     var parsedJson = jsonDecode(json);
-    x = parsedJson['x'];
-    y = parsedJson['y'];
+
+    if (parsedJson['soundRange'] != null) {
+      soundFile = parsedJson['soundFile'];
+      soundRange = parsedJson['soundRange'];
+    }
+
+    x = num.parse(parsedJson['x']);
+    y = num.parse(parsedJson['y']);
   }
 
   get offset => Offset(x.toDouble(), y.toDouble());
-  get hasSound => false;
-
-  /// convert a 2d list to a list of points List<Point>
-  static List<Point> fromListToListOfPoints(List<List<num>> e) {
-    return e.map((e) => Point.fromList(e)).toList();
-  }
+  get hasSound => soundRange != null;
 
   @override
   bool operator ==(Object other) =>
@@ -32,6 +37,14 @@ class Point {
       other is Point && (other.x == x && other.y == y);
 
   String toJson() {
-    return '{"x":"$x", "y":"$y"}';
+    if (soundFile == null) {
+      return '{"x":"$x", "y":"$y"}';
+    } else {
+      return '{"x": "$x", "y":"$y", "soundRange":"$soundRange", "soundFile":"$soundFile"}';
+    }
+  }
+
+  num distanceTo(Point other) {
+    return sqrt(pow(other.x - x, 2) + pow(other.y - y, 2));
   }
 }

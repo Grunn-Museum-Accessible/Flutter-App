@@ -1,10 +1,13 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:math' as Math;
 
 import 'package:app/helpers/ble.dart';
 import 'package:app/libs/PositioningVisualizer/positioningVisualiser.dart';
-import 'package:app/libs/PositioningVisualizer/src/soundPoint.dart';
+import 'package:app/widgets/AddAudioPointDialog.dart';
+import 'package:flutter/cupertino.dart' hide Route;
 import 'package:flutter/material.dart' hide Route;
+import 'package:flutter/services.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -26,7 +29,7 @@ class ConnectedDeviceScreenState extends State<ConnectedDeviceScreen> {
   String rot2Val = '0';
   List<int> rot1 = [20, 20, 20];
   List<int> rot2 = [20, 20, 20];
-  Route route = Route.fromList([
+  Route route = Route.fromList('testRoute', [
     [20, 200],
     [100, 400],
     [300, 600],
@@ -69,8 +72,11 @@ class ConnectedDeviceScreenState extends State<ConnectedDeviceScreen> {
   }
 
   void _addListeneres() async {
+    log('adding callback listerners');
     await bleDevice.addListenerToCharacteristic(guids[0], _rot1Listener);
+    log('added rot1');
     await bleDevice.addListenerToCharacteristic(guids[1], _rot2Listener);
+    log('added rot2');
   }
 
   void _rot1Listener(List<int> chars) {
@@ -170,8 +176,17 @@ class ConnectedDeviceScreenState extends State<ConnectedDeviceScreen> {
                               Color.fromARGB(255, 212, 255, 0),
                             ),
                           ),
+                          onLongPress: () {
+                            showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return AddAudioPointDialog(
+                                    addRoute: positionVisualizer.addPoint,
+                                  );
+                                });
+                          },
                           onPressed: () {
-                            positionVisualizer.addPoint();
+                            positionVisualizer.addPoint(null, null);
                           },
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),

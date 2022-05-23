@@ -1,40 +1,52 @@
 import 'dart:convert';
-import 'dart:io';
 
+import 'package:app/helpers/globals.dart';
 import 'package:app/libs/PositioningVisualizer/positioningVisualiser.dart';
-import 'package:app/libs/PositioningVisualizer/src/soundPoint.dart';
 
 class Route {
+  late String name;
+
   late List<Line> parts;
   Point? tempLast;
-  Route(this.parts);
+  Route(this.name, this.parts);
 
-  Route.fromList(List<List<num>> list) {
+  Route.fromList(String name, List<List<num>> list) {
+    this.name = name;
     parts = [];
     for (int i = 0; i < list.length - 1; i++) {
-      parts.add(Line.fromList([list[i], list[i + 1]]));
+      parts.add(
+        Line(
+          Point(
+            list[i][0],
+            list[i][1],
+          ),
+          Point(
+            list[i + 1][0],
+            list[i + 1][1],
+          ),
+        ),
+      );
     }
   }
+
   Route.fromString(String source) {
-    List<dynamic> parsed = jsonDecode(source);
+    var parsed = jsonDecode(source);
+    name = parsed['name'];
+
     parts = [];
-    parsed.forEach((element) {
+    parsed['parts'].forEach((element) {
       // var startPointType = ;
       List<Point> lineEnds = [];
       ['start', 'end'].forEach((end) {
-        var pointTypeConst = element[end]['soundFile'] == null
-            ? Point.fromString
-            : SoundPoint.fromString;
-
-        lineEnds.add(pointTypeConst(jsonEncode(element)));
+        lineEnds.add(Point.fromString(jsonEncode(element[end])));
       });
-      parts.add(Line.fromList(lineEnds));
+      parts.add(Line(lineEnds[0], lineEnds[1]));
     });
   }
   String toJson() {
-    String json = '[';
+    String json = '{"name": "$name", "parts": [';
     json += parts.map((e) => e.toJson()).join(',');
-    json += ']';
+    json += ']}';
 
     return json;
   }
@@ -73,6 +85,8 @@ class Route {
     } else {
       tempLast = point;
     }
+
+    restAPI.updateRoute(this);
   }
 
   operator ==(Object other) {

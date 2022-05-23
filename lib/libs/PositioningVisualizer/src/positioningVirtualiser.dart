@@ -1,5 +1,6 @@
 // ignore_for_file: always_use_package_imports
 
+import 'dart:developer';
 import 'dart:math' hide log;
 import 'package:app/libs/PositioningVisualizer/src/route.dart';
 import 'package:flutter/material.dart' hide Route;
@@ -13,7 +14,7 @@ import 'package:p5/p5.dart';
 class PositioningVisualiser extends StatefulWidget {
   final List<Anchor> Function() getAnchorInfo;
   final void Function(num angle) setAngle;
-  late final void Function() addPoint;
+  late final void Function(String? audioFile, num? range) addPoint;
 
   final Route route;
 
@@ -99,105 +100,88 @@ class MySketch extends PPainter {
   void draw() {
     background(color(255, 255, 255));
 
-    strokeWeight(1);
     List<Anchor> anchors = getAnchors();
-    drawAnchors(anchors);
-    drawPath(route);
+    drawStatic(anchors);
 
-    // check if there are intersections
-    var intersections = getIntersections(anchors);
-    Point? intersection = mostLikelyPosistion(intersections);
-    if (intersection == null) {
-      return;
-    }
+    // check if there are intersections and draw the most likely one
+    Point? intersection = mostLikelyPosistion(getIntersections(anchors));
 
+    // if there is no intersection we return
+    if (intersection == null) return;
+    // if there is a iintersection we draw it and store it in previous loc
     previousLoc = intersection;
-    // calulate the closest line and the angle and distance towards it.
-    if (route.length > 0) {
-      Point closestPoint = getClosestPointOnRoute(intersection, route);
-      num angleOfLine = getAngleOfLine(Line(intersection, closestPoint));
-      num distanceToClosestPoint =
-          getLenghtOfLine(Line(intersection, closestPoint));
+    drawPoint(intersection, Colors.cyan, 20);
 
-      Point nextWaypoint = closestPoint;
+    // if the length of the route is 0 we dont need to do anything from this point
+    if (route.length <= 0) return;
 
-      if (distanceToClosestPoint > 100) {
-        angleOfLine += 90;
+    // calulate the closest line, the angle, and distance towards it.
+    Point closestPoint = getClosestPointOnRoute(intersection, route);
+    num angleOfLine = Line(intersection, closestPoint).angle;
+    num distanceToClosestPoint = Line(intersection, closestPoint).length;
+
+    // make variable to store the point to navigate to
+    Point nextWaypoint = closestPoint;
+
+    if (distanceToClosestPoint >
+        getClosestPartOfRoute(closestPoint, route).maxDistance) {
+      // if the distance from the line is bigger than the configured distance
+      // we navigate directly to it
+      angleOfLine += 90;
+    } else {
+      // if it is smaller than we navigate to the next point on the line
+
+      // get the closest part of the route to the current possition
+      Line closestLine = getClosestPartOfRoute(intersection, route);
+
+      // if we are close enoguh to the end of the line we
+      // navigate to the next lines end
+      if (Line(closestPoint, closestLine.end).length < 30) {
+        // get the next line to get its end. if there are no parts left
+        // we take the current line
+        Line nextLine = route.getNextPart(closestLine) ?? closestLine;
+        nextWaypoint = nextLine.end;
+
+        // calculate the angle to the next waypoint
+        angleOfLine = Line(
+          intersection,
+          nextLine.end,
+        ).angle;
       } else {
-        // you are within a distance of the line
+        // else we navigate to the end of the closest line
+        nextWaypoint = closestLine.end;
 
-        // get the closest part of the route to the current possition
-        Line closestLine = getClosestPartOfRoute(intersection, route);
-        // if the closest point is the end of the line we route to the next part
-        if (getLenghtOfLine(Line(closestPoint, closestLine.end)) < 30) {
-          // get the next line to get its end. if there are no parts left
-          // we take the current line
-          Line nextLine = route.getNextPart(closestLine) ?? closestLine;
-          nextWaypoint = nextLine.end;
-
-          // calculate the angle to the next waypoint
-          angleOfLine = getAngleOfLine(
-            Line(
-              intersection,
-              nextLine.end,
-            ),
-          );
-        } else {
-          nextWaypoint = closestLine.end;
-
-          angleOfLine = getAngleOfLine(Line(
-            intersection,
-            closestLine.end,
-          ));
-        }
-        angleOfLine += 90;
+        angleOfLine = Line(
+          intersection,
+          closestLine.end,
+        ).angle;
       }
-
-      setAngle(angleOfLine);
-
-      // draw line to nesxt waypoint
-      drawLine(intersection, nextWaypoint);
-      drawPoints([nextWaypoint]);
+      angleOfLine += 90;
     }
 
-    fill(Colors.green);
-    stroke(Colors.black);
-    strokeWeight(5);
-    paintCanvas.drawCircle(
-      intersection.offset,
-      30,
-      fillPaint,
-    );
-    paintCanvas.drawCircle(
-      intersection.offset,
-      30,
-      strokePaint,
-    );
+    // set the angle of the arrow
+    setAngle(angleOfLine);
+
+    // draw line to next waypoint
+    drawLine(intersection, nextWaypoint);
+    drawPoints([nextWaypoint]);
   }
 
-  void addPoint() {
+  /// add the current point to the line
+  void addPoint(String? soundFile, num? range) {
     List<Anchor> anchors = getAnchors();
     Point? intersection = mostLikelyPosistion(getIntersections(anchors));
     if (intersection != null) {
+      log(soundFile ?? '');
+      log((range ?? 0).toString());
+
+      if (soundFile != null) {
+        intersection.soundFile = soundFile;
+        intersection.soundRange = range;
+      }
+
       route.addPart(intersection);
     }
-  }
-
-  bool isLeftOfLine(Point point, Line line) {
-    return ((line.end.x - line.start.x) * (point.y - line.start.y) -
-            (line.end.y - line.start.y) * (point.x - line.start.x)) >
-        0;
-  }
-
-  num scaleBetween(
-    num unscaled,
-    num minAllowed,
-    num maxAllowed,
-    num min,
-    num max,
-  ) {
-    return ((maxAllowed - minAllowed) * (unscaled - min) / (max - min)) +
-        minAllowed;
   }
 
   void drawLine(Point start, Point end) {
@@ -209,13 +193,6 @@ class MySketch extends PPainter {
       end.x.toDouble(),
       end.y.toDouble(),
     );
-  }
-
-  num getLenghtOfLine(Line line) {
-    num x = line.end.x - line.start.x;
-    num y = line.end.y - line.start.y;
-
-    return sqrt(x * x + y * y);
   }
 
   Point getClosestPointOnLine(Point point, Line line) {
@@ -255,16 +232,6 @@ class MySketch extends PPainter {
     num dy = point.y - closestPoint.y;
 
     return sqrt(dx * dx + dy * dy);
-  }
-
-  num getAngleOfLine(Line line) {
-    num dx = line.end.x - line.start.x;
-    num dy = line.end.y - line.start.y;
-
-    num theta = atan2(dy, dx) * (180 / pi);
-    if (theta < 0) theta += 360;
-    // return atan2(dy, dx);
-    return theta;
   }
 
   List<Point> getIntersections(List<Anchor> anchors) {
@@ -324,6 +291,7 @@ class MySketch extends PPainter {
     return getClosestPointOnLine(point, pathPart);
   }
 
+  /// draw all parts of a route
   void drawPath(Route route) {
     strokeWeight(5);
     stroke(Colors.black);
@@ -337,41 +305,52 @@ class MySketch extends PPainter {
     }
   }
 
-  void drawPoints(List<Point> intersections) {
-    strokeWeight(20);
-    stroke(Colors.red);
-    intersections.forEach((i) {
-      fill(Colors.black);
-      paintCanvas.drawCircle(
-        i.offset,
-        10,
-        fillPaint,
-      );
+  /// draw a single point with optional color and size
+  void drawPoint(Point point, [Color? fillColor, num? size]) {
+    fill(fillColor ?? Colors.black);
+    paintCanvas.drawCircle(
+      point.offset,
+      (size ?? 10).toDouble(),
+      fillPaint,
+    );
+  }
+
+  /// draw a list of points with optional color and size
+  void drawPoints(List<Point> points, [Color? fillColor, num? size]) {
+    points.forEach((point) {
+      drawPoint(point, fillColor, size);
     });
   }
 
+  /// draw the anchors and the posible positions from it
   void drawAnchors(List<Anchor> anchors) {
-    strokeWeight(5);
     anchors.forEach((pos) {
+      strokeWeight(10);
       stroke(Colors.black);
-      fill(Color.fromARGB(100, 212, 255, 0));
+      // stroke(Color.fromARGB(255, 212, 255, 0));
       paintCanvas.drawCircle(
-        pos.coordsToOffset(),
+        pos.offset,
+        pos.distance.toDouble(),
+        strokePaint,
+      );
+      // Stroke
+      strokeWeight(6);
+      stroke(Color.fromARGB(255, 212, 255, 0));
+      paintCanvas.drawCircle(
+        pos.offset,
         pos.distance.toDouble(),
         strokePaint,
       );
 
-      paintCanvas.drawCircle(
-        pos.coordsToOffset(),
-        pos.distance.toDouble(),
-        fillPaint,
-      );
-
       fill(Colors.black);
-      paintCanvas.drawCircle(pos.pos.offset, 5, fillPaint);
+      paintCanvas.drawCircle(pos.offset, 5, fillPaint);
     });
   }
 
+  /// get the most likely position based on the previuos position and
+  /// current intersection points.
+  ///
+  /// if a empty list is given the function returns null
   Point? mostLikelyPosistion(List<Point> intersections) {
     if (intersections.length <= 0) {
       return null;
@@ -385,7 +364,7 @@ class MySketch extends PPainter {
     num closest = -1;
     intersections.forEach((element) {
       // get the distance from previous pos
-      num dist = distanceBetweenPoints(element, previousLoc ?? Point(0, 0));
+      num dist = element.distanceTo(previousLoc ?? Point(0, 0));
       if (closest == -1 || closest > dist) {
         closest = dist;
         mostLikely = element;
@@ -394,7 +373,27 @@ class MySketch extends PPainter {
     return mostLikely;
   }
 
-  num distanceBetweenPoints(Point point1, Point point2) {
-    return sqrt(pow(point2.x - point1.x, 2) + pow(point2.y - point1.y, 2));
+  /// draw a point for each point that has a audio clip added to it
+  void drawSoundPointsInRoute() {
+    List<Point> soundPoints = [];
+    route.parts.forEach((e) {
+      if (e.start.hasSound) soundPoints.add(e.start);
+      if (e.end.hasSound) soundPoints.add(e.end);
+    });
+
+    // drawSoundPoints(soundPoints);
+    drawPoints(soundPoints, Colors.amber);
+
+    soundPoints.forEach((point) {
+      drawPoint(point, Color.fromARGB(100, 255, 193, 7), point.soundRange);
+    });
+  }
+
+  // draw the give anchors, route and sound points in the route
+  void drawStatic(List<Anchor> anchors) {
+    drawAnchors(anchors);
+    drawPath(route);
+
+    drawSoundPointsInRoute();
   }
 }
