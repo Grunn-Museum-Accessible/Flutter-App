@@ -16,6 +16,7 @@ dependencies:
     git:
       url: https://github.com/espresso3389/flutter_blue.git
   flutter_svg: ^1.0.3
+  http: ^0.13.4
   nfc_manager: ^3.1.1
   p5: ^0.1.0
   permission_handler: ^9.2.0

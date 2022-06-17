@@ -1,17 +1,18 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:app/helpers/globals.dart';
 import 'package:app/libs/PositioningVisualizer/positioningVisualiser.dart';
 
 class Route {
   late String name;
+  late String description;
 
   late List<Line> parts;
   Point? tempLast;
-  Route(this.name, this.parts);
+  Route(this.name, this.description, this.parts);
 
-  Route.fromList(String name, List<List<num>> list) {
-    this.name = name;
+  Route.fromList(this.name, this.description, List<List<num>> list) {
     parts = [];
     for (int i = 0; i < list.length - 1; i++) {
       parts.add(
@@ -43,8 +44,42 @@ class Route {
       parts.add(Line(lineEnds[0], lineEnds[1]));
     });
   }
+
+  static List<Route> routeListFromString(String json) {
+    List<dynamic> parsed = jsonDecode(json);
+
+    return parsed.map((i) {
+      // print(i['parts']);
+
+      List<Line> _parts = [];
+
+      i['parts'].forEach((element) {
+        // var startPointType = ;
+        List<Point> lineEnds = [];
+        ['start', 'end'].forEach((end) {
+          lineEnds.add(
+            Point(
+              element[end]['x'],
+              element[end]['y'],
+              soundFile: element[end]['soundFile'],
+              soundRange: element[end]['soundRange'],
+            ),
+          );
+        });
+        _parts.add(Line(lineEnds[0], lineEnds[1]));
+      });
+
+      return Route(
+        i['name'] ?? '',
+        i['description'] ?? '',
+        _parts,
+      );
+    }).toList();
+  }
+
   String toJson() {
-    String json = '{"name": "$name", "parts": [';
+    String json =
+        '{"name": "$name",  "description", "$description", "parts": [';
     json += parts.map((e) => e.toJson()).join(',');
     json += ']}';
 
@@ -85,8 +120,6 @@ class Route {
     } else {
       tempLast = point;
     }
-
-    restAPI.updateRoute(this);
   }
 
   operator ==(Object other) {

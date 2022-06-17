@@ -1,11 +1,11 @@
 import 'dart:developer';
 
-import 'package:app/pages/device.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_blue/flutter_blue.dart';
+import 'package:app/libs/PositioningVisualizer/positioningVisualiser.dart';
+import 'package:app/libs/theme.dart';
+import 'package:app/pages/EditRoute.dart';
+import 'package:flutter/material.dart' hide Theme, Route;
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:nfc_manager/nfc_manager.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:http/http.dart';
 
 class HomeScreen extends StatefulWidget {
   HomeScreen({Key? key}) : super(key: key);
@@ -14,209 +14,89 @@ class HomeScreen extends StatefulWidget {
 }
 
 class HomeScreenState extends State<HomeScreen> {
-  FlutterBlue flutterBlue = FlutterBlue.instance;
-  bool isScanning = true;
-  List<ScanResult> foundDevices = [];
-  List<Widget> foundDevicesWidgets = [];
-
-  void _startScan() async {
-    await Permission.bluetoothScan.request();
-    await Permission.bluetooth.request();
-    await Permission.bluetoothConnect.request();
-    await Permission.location.request();
-
-    await flutterBlue.stopScan();
-    await flutterBlue.startScan(timeout: Duration(seconds: 4));
-
-    flutterBlue.scanResults.listen((results) {
-      foundDevices = results;
-      foundDevicesWidgets.clear();
-      log("BLE scan completed");
-      setState(() {
-        foundDevicesWidgets = _buildConnectedDevices(results);
-        isScanning = false;
-      });
-    });
-
-    flutterBlue.stopScan();
-  }
+  late ColorTheme theme;
+  List<Route>? routes;
 
   @override
   void initState() {
-    _startScan();
-    NfcManager.instance.isAvailable().then(
-      (bool isAvailable) {
-        log("nfc checkable");
-
-        if (isAvailable) {
-          log('nfc available');
-          // Start Session
-          NfcManager.instance.startSession(
-            onDiscovered: (NfcTag tag) async {
-              log("tag discovered");
-              // print(tag.data);
-              // Do something with an NfcTag instance.
-              Ndef? ndef = Ndef.from(tag);
-              if (ndef == null) return;
-
-              NdefMessage msg = await ndef.read();
-              msg.records.forEach((element) {
-                String readValue = String.fromCharCodes(element.payload)
-                    .substring(3)
-                    .toUpperCase();
-
-                log(readValue);
-
-                foundDevices.forEach((dev) {
-                  if (dev.device.id.toString() == readValue) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ConnectedDeviceScreen(
-                          device: dev.device,
-                        ),
-                      ),
-                    );
-                  }
-                });
-              });
-            },
-          );
-        }
-      },
-    );
     super.initState();
+
+    theme = Theme.dark;
+    getAllRoutes();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color.fromARGB(255, 38, 38, 38),
-      appBar: AppBar(
-        backgroundColor: Color.fromARGB(255, 38, 38, 38),
-        foregroundColor: Colors.white,
-        elevation: 0,
-        title: Center(
-          child: SvgPicture.asset(
-            'assets/images/groningerMuseumLogo.svg',
-            color: Colors.white,
-          ),
-        ),
-      ),
-      body: Column(
+  getAllRoutes([String url = 'groninger-museum-api.herokuapp.com']) {
+    get(Uri.http(url, '/')).then((res) {
+      if (res.statusCode == 200) {
+        setState(() {
+          routes = Route.routeListFromString(res.body);
+        });
+      }
+    });
+  }
+
+  ListTile buildRouteItem(Route route) {
+    return ListTile(
+      textColor: theme.text,
+      iconColor: theme.text,
+      title: Text(route.name),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                'Scan the device to connect or click on connect',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 24,
-                  color: Colors.white,
-                ),
-              ),
+          IconButton(
+            onPressed: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => EditRoute(route)));
+            },
+            icon: Icon(
+              Icons.edit,
             ),
           ),
-          Divider(
-            color: Colors.black,
-          ),
-          Visibility(
-            visible: !isScanning,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
-                  child: Text('found devices',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      )),
-                ),
-                SizedBox(
-                  height: 500.0,
-                  child: RefreshIndicator(
-                    onRefresh: () async {
-                      _startScan();
-                    },
-                    child: ListView(
-                      children: foundDevicesWidgets,
-                      physics: const AlwaysScrollableScrollPhysics(),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            replacement: Expanded(
-              child: Center(
-                child: Column(
-                  children: [
-                    Text(
-                      'Searching for devices',
-                      style: TextStyle(
-                        fontSize: 32,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.all(36),
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          IconButton(
+            onPressed: () {
+              log('[DEBUG] : DELETE ROUTE');
+            },
+            icon: Icon(Icons.delete_forever),
           ),
         ],
       ),
     );
   }
 
-  List<Widget> _buildConnectedDevices(List<ScanResult> devices) {
-    List<Widget> widgets = [];
-
-    devices.forEach((d) {
-      widgets.add(ListTile(
-        textColor: Colors.white,
-        title: Text(
-          d.device.name,
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text(d.device.id.toString()),
-        trailing: ElevatedButton(
-          style: ButtonStyle(
-              backgroundColor: MaterialStateProperty.all(
-                Color.fromARGB(255, 212, 255, 0),
-              ),
-              shape: MaterialStateProperty.all(
-                RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(
-                    Radius.zero,
-                  ),
-                ),
-              )),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ConnectedDeviceScreen(device: d.device),
-              ),
-            );
-          },
-          child: Text(
-            'Connect',
-            style: TextStyle(
-              color: Colors.black,
-            ),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: theme.background,
+      appBar: AppBar(
+        backgroundColor: theme.background,
+        foregroundColor: theme.text,
+        elevation: 0,
+        title: Center(
+          child: SvgPicture.asset(
+            'assets/images/groningerMuseumLogo.svg',
+            color: theme.text,
           ),
         ),
-      ));
-    });
-    // print(widgets);
-    return widgets;
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18.0, 20, 0, 0),
+            child: Text(
+              "Huidige routes",
+              style: TextStyle(color: theme.text, fontSize: 24),
+            ),
+          ),
+          ListView.builder(
+            scrollDirection: Axis.vertical,
+            shrinkWrap: true,
+            itemCount: (routes ?? []).length,
+            itemBuilder: (context, index) {
+              return buildRouteItem(routes![index]);
+            },
+          )
+        ],
+      ),
+    );
   }
 }

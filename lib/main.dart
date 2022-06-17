@@ -11,13 +11,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return MaterialApp(
       title: 'Groninger museum slechtzienden tour companion app',
-      theme: ThemeData(
-        colorScheme: PrimaryTheme.lightColorScheme,
-        textTheme: PrimaryTheme.textThemeFonts,
-      ),
       home: HomeScreen(),
     );
   }
