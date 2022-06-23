@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:app/libs/surround_sound/src/web_html.dart';
 import 'package:app/libs/surround_sound/surround_sound.dart';
@@ -13,7 +12,6 @@ class SoundController {
   late HeadlessInAppWebView webview;
   late AngleConverter angleConverter;
 
-  @override
   void dispose() {
     pause().then((_) {
       stop().then((_) {
@@ -28,9 +26,7 @@ class SoundController {
     webview = HeadlessInAppWebView(
       // load the html and insert the url
       initialData: InAppWebViewInitialData(
-        data: html(
-          soundFile,
-        ),
+        data: html,
       ),
       // set the options for
       initialOptions: InAppWebViewGroupOptions(
@@ -39,11 +35,11 @@ class SoundController {
               false, // play media without user input
         ),
       ),
-      onWebViewCreated: (controller) {
+      onLoadStop: (controller, Uri? url) {
         init();
         start();
         complete(controller);
-      },
+      }
     )..run();
   }
   void complete(InAppWebViewController controller) {

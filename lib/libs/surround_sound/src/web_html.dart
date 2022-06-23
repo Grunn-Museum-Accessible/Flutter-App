@@ -1,5 +1,4 @@
-String html(String soundFile) {
-  return '''<!DOCTYPE html>
+String html = '''<!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
@@ -97,11 +96,13 @@ String html(String soundFile) {
 
             function play() {
                 playing = true;
+                log("starting playing");
                 audioCtx.resume();
             }
 
             function pause() {
                 playing = false;
+                log("stopped playing");
                 audioCtx.suspend();
             }
 
@@ -192,4 +193,3 @@ String html(String soundFile) {
     </body>
 </html>
 ''';
-}
