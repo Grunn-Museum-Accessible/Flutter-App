@@ -104,9 +104,11 @@ class BleDevice {
   }
 
   Future<void> deconstruct() async {
-    await _device.disconnect();
-    listeners.forEach((key, value) {
-      value.cancel();
+    _device.disconnect().then((_) {
+      print('disconnected');
+      listeners.forEach((key, value) {
+        value.cancel();
+      });
     });
   }
 

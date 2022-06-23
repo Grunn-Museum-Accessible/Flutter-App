@@ -33,15 +33,15 @@ class SoundController {
         ),
       ),
       // set the options for
-      initialOptions: InAppWebViewGroupOptions(
-        crossPlatform: InAppWebViewOptions(
-          mediaPlaybackRequiresUserGesture:
-              false, // play media without user input
-        ),
-      ),
+      // initialOptions: InAppWebViewGroupOptions(
+      //   crossPlatform: InAppWebViewOptions(
+      //     mediaPlaybackRequiresUserGesture:
+      //         false, // play media without user input
+      //   ),
+      // ),
       onWebViewCreated: (controller) {
-        init();
-        start();
+        // init();
+        // start();
         complete(controller);
       },
     )..run();
