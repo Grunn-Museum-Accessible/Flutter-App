@@ -6,7 +6,7 @@ class Anchor extends Point {
   Anchor(num x, num y, this.distance) : super(x, y);
   Anchor.fromPoint(Point point, this.distance) : super(point.x, point.y);
 
-  Anchor.fromList(List<int> anchorInfo) : super(anchorInfo[0], anchorInfo[1]) {
+  Anchor.fromList(List<num> anchorInfo) : super(anchorInfo[0], anchorInfo[1]) {
     distance = anchorInfo[2];
   }
 }

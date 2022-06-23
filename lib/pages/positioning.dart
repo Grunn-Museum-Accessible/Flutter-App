@@ -26,20 +26,21 @@ class PositioningScreenState extends State<PositioningScreen> {
   String soundFile =
       'https://sfmygozkc1b6pom6ld5krvdok3dpc2eh.ui.nabu.casa/local/ping.mp3';
 
-  String rot1Val = '0';
-  String rot2Val = '0';
-  List<int> rot1 = [20, 20, 20];
-  List<int> rot2 = [350, 500, 20];
+  List<double> anchor1 = [20, 20, 20];
+  List<double> anchor2 = [20, 350, 20];
+  List<double> anchor3 = [350, 500, 20];
 
   List<String> guids = [
-    '667f1c78-be2e-11ec-9d64-0242ac120002', // rot 1
-    '667f1c78-be2e-11ec-9d64-0242ac120003' // rot 2
+    '667f1c78-be2e-11ec-9d64-0242ac120002', // anchor 1
+    '667f1c78-be2e-11ec-9d64-0242ac120003', // anchor 2
+    '667f1c78-be2e-11ec-9d64-0242ac120005' // anchor 2
   ];
 
   num arrowAngle = 0;
 
   @override
   void dispose() {
+    _controller.dispose();
     bleDevice.deconstruct();
     super.dispose();
   }
@@ -73,25 +74,25 @@ class PositioningScreenState extends State<PositioningScreen> {
     BluetoothCharacteristic bleChar = bleDevice.getBluetoothCharacterstic(uuid);
 
     String createAnchorString() {
-      return '20|20:350|500';
+      return '20|20:20|350:350|500';
     }
 
     return bleChar.write(createAnchorString().codeUnits);
   }
 
   void _addListeneres() async {
-    await bleDevice.addListenerToCharacteristic(guids[0], _rot1Listener);
-    await bleDevice.addListenerToCharacteristic(guids[1], _rot2Listener);
+    await bleDevice.addListenerToCharacteristic(guids[0], _anchor1Listener);
+    await bleDevice.addListenerToCharacteristic(guids[1], _anchor2Listener);
+    await bleDevice.addListenerToCharacteristic(guids[2], _anchor3Listener);
   }
 
-  void _rot1Listener(List<int> chars) {
+  void _anchor1Listener(List<int> chars) {
     String strVal = String.fromCharCodes(chars);
     String part = strVal.split('.')[0];
     if (isNumeric(part)) {
       try {
         setState(() {
-          rot1Val = part;
-          rot1 = [20, 20, int.parse(part, radix: 10)];
+          anchor1 = [20, 20, double.parse(part)];
         });
       } catch (e) {
         // empty catch
@@ -99,14 +100,25 @@ class PositioningScreenState extends State<PositioningScreen> {
     }
   }
 
-  void _rot2Listener(List<int> chars) {
-    String strVal = String.fromCharCodes(chars);
-    String part = strVal.split('.')[0];
+  void _anchor2Listener(List<int> chars) {
+    String part = String.fromCharCodes(chars);
     if (isNumeric(part)) {
       try {
         setState(() {
-          rot2Val = part;
-          rot2 = [350, 500, int.parse(part, radix: 10)];
+          anchor2 = [20, 350, double.parse(part)];
+        });
+      } catch (e) {
+        // empty catch
+      }
+    }
+  }
+
+  void _anchor3Listener(List<int> chars) {
+    String part = String.fromCharCodes(chars);
+    if (isNumeric(part)) {
+      try {
+        setState(() {
+          anchor3 = [350, 500, double.parse(part)];
         });
       } catch (e) {
         // empty catch
@@ -143,11 +155,15 @@ class PositioningScreenState extends State<PositioningScreen> {
                       child: Column(
                         children: [
                           Text(
-                            'Distance of anchor 1: ' + rot1Val,
+                            'Distance of anchor 1: ' + anchor1[2].toString(),
                             style: TextStyle(fontSize: 30, color: Colors.white),
                           ),
                           Text(
-                            'Distance of anchor 2: ' + rot2Val,
+                            'Distance of anchor 2: ' + anchor2[2].toString(),
+                            style: TextStyle(fontSize: 30, color: Colors.white),
+                          ),
+                          Text(
+                            'Distance of anchor 3: ' + anchor3[2].toString(),
                             style: TextStyle(fontSize: 30, color: Colors.white),
                           ),
                         ],
@@ -241,7 +257,11 @@ class PositioningScreenState extends State<PositioningScreen> {
   }
 
   List<Anchor> getAnchorInfo() {
-    return [Anchor.fromList(rot1), Anchor.fromList(rot2)];
+    return [
+      Anchor.fromList(anchor1),
+      Anchor.fromList(anchor2),
+      Anchor.fromList(anchor3)
+    ];
   }
 }
 

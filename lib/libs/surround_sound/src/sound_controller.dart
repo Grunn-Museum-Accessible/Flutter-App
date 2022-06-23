@@ -13,6 +13,15 @@ class SoundController {
   late HeadlessInAppWebView webview;
   late AngleConverter angleConverter;
 
+  @override
+  void dispose() {
+    pause().then((_) {
+      stop().then((_) {
+        webview.dispose();
+      });
+    });
+  }
+
   SoundController(String soundFile) {
     // create a angle converter and webview
     angleConverter = AngleConverter();

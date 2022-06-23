@@ -29,23 +29,14 @@ checkBlePerm() async {
 }
 
 List<Widget> buildConnectedDevices(
-  BuildContext context,
-  List<ScanResult> devices,
-  Route route
-) {
+    BuildContext context, List<ScanResult> devices, Route route) {
   ThemeData themeData = Theme.of(context);
   List<Widget> widgets = [];
 
-  devices.forEach((d) => widgets.add(
-    ListTile(
-      title: Text(
-        d.device.name,
-        style: themeData.textTheme.headline6
-      ),
-      subtitle: Text(
-        d.device.id.toString(),
-        style: themeData.textTheme.subtitle2
-      ),
+  devices.forEach((d) => widgets.add(ListTile(
+      title: Text(d.device.name, style: themeData.textTheme.headline6),
+      subtitle:
+          Text(d.device.id.toString(), style: themeData.textTheme.subtitle2),
       trailing: IconButton(
         icon: Icon(
           Icons.bluetooth_searching_rounded,
@@ -55,27 +46,21 @@ List<Widget> buildConnectedDevices(
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => RouteScreen(
-                device: d.device,
-                route: route
-              ),
+              builder: (context) => RouteScreen(device: d.device, route: route),
             ),
           );
         },
         tooltip: 'Verbind met ${d.device.name}',
-      )
-    )
-  ));
+      ))));
 
   return widgets;
 }
 
-void scanDevices({
-  required BuildContext context,
-  required Route route,
-  required FlutterBlue flutterBlue, 
-  required void Function(List<ScanResult> results) callback
-}) async {
+void scanDevices(
+    {required BuildContext context,
+    required Route route,
+    required FlutterBlue flutterBlue,
+    required void Function(List<ScanResult> results) callback}) async {
   await Permission.bluetoothScan.request();
   await Permission.bluetooth.request();
   await Permission.bluetoothConnect.request();
@@ -170,8 +155,7 @@ class BleDevice {
   }
 
   Future<StreamSubscription<List<int>>> addListenerToCharacteristic(
-    String uuid, void Function(List<int>) func
-  ) async {
+      String uuid, void Function(List<int>) func) async {
     if (!_setupComplete) throw SetupNotCompleted();
     BluetoothCharacteristic char = _getBleChar(Guid(uuid));
     await char.setNotifyValue(true);

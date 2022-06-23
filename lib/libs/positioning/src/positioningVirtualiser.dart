@@ -101,7 +101,7 @@ class MySketch extends PPainter {
     drawStatic(anchors);
 
     // check if there are intersections and draw the most likely one
-    Point? intersection = mostLikelyPosistion(getIntersections(anchors));
+    Point? intersection = mostLikelyPosistion(getAllIntersections(anchors));
 
     // if there is no intersection we return
     if (intersection == null) return;
@@ -166,6 +166,28 @@ class MySketch extends PPainter {
     // draw line to next waypoint
     drawLine(intersection, nextWaypoint);
     drawPoints([nextWaypoint]);
+  }
+
+// res = [(a, b) for idx, a in enumerate(test_list) for b in test_list[idx + 1:]]
+  List<List<Anchor>> getAnchorPairs(List<Anchor> items) {
+    List<List<Anchor>> res = [];
+    for (int i = 0; i < items.length; i++) {
+      for (int j = i + 1; j < items.length; j++) {
+        res.add([items[i], items[j]]);
+      }
+    }
+
+    return res;
+  }
+
+  List<Point> getAllIntersections(anchors) {
+    List<List<Anchor>> anchorPairs = getAnchorPairs(anchors);
+
+    List<Point> intersections = [];
+    anchorPairs
+        .map((e) => getIntersections(e))
+        .forEach((element) => intersections.addAll(element));
+    return intersections;
   }
 
   /// add the current point to the line
@@ -325,12 +347,14 @@ class MySketch extends PPainter {
 
   /// draw the anchors and the posible positions from it
   void drawAnchors(List<Anchor> anchors) {
+    int counter = 1;
     anchors.forEach((pos) {
       strokeWeight(10);
       stroke(Colors.black);
       // stroke(Color.fromARGB(255, 212, 255, 0));
       paintCanvas.drawCircle(
         pos.offset,
+        // 300,
         pos.distance.toDouble(),
         strokePaint,
       );
@@ -356,22 +380,54 @@ class MySketch extends PPainter {
     if (intersections.length <= 0) {
       return null;
     }
-    if (previousLoc == null) {
-      return intersections[0];
-    }
-    // calculate the most likely position
-    Point mostLikely = intersections[0];
+    if (getAnchors().length < 3) {
+      if (previousLoc == null) {
+        return intersections[0];
+      }
+      // calculate the most likely position
+      Point mostLikely = intersections[0];
 
-    num closest = -1;
-    intersections.forEach((element) {
-      // get the distance from previous pos
-      num dist = element.distanceTo(previousLoc ?? Point(0, 0));
-      if (closest == -1 || closest > dist) {
-        closest = dist;
-        mostLikely = element;
+      num closest = -1;
+      intersections.forEach((element) {
+        // get the distance from previous pos
+        num dist = element.distanceTo(previousLoc ?? Point(0, 0));
+        if (closest == -1 || closest > dist) {
+          closest = dist;
+          mostLikely = element;
+        }
+      });
+      return mostLikely;
+    }
+    return findMostFrequent(intersections);
+
+    // there are 2 or more anchors
+  }
+
+  Point? findMostFrequent(List<Point> points) {
+    if (points.length == 0) {
+      return null;
+    }
+
+    Map<Point, int> occurences = {};
+
+    points.forEach((element) {
+      if (occurences.containsKey(element)) {
+        occurences[element] = occurences[element]! + 1;
+      } else {
+        occurences[element] = 1;
       }
     });
-    return mostLikely;
+
+    Point mostFrequent = occurences.keys.first;
+    int highest = occurences.values.first;
+    occurences.keys.forEach((element) {
+      if (occurences[element]! > highest) {
+        highest = occurences[element]!;
+        mostFrequent = element;
+      }
+    });
+
+    return mostFrequent;
   }
 
   /// draw a point for each point that has a audio clip added to it
