@@ -20,14 +20,14 @@ class PositioningVisualiser extends StatefulWidget {
   final Route route;
   final num maxOffline;
 
-  PositioningVisualiser({
-    Key? key,
-    required this.checkDistance,
-    required this.getAnchorInfo,
-    required this.route,
-    required this.setAngle,
-    required this.maxOffline
-  }) : super(key: key);
+  PositioningVisualiser(
+      {Key? key,
+      required this.checkDistance,
+      required this.getAnchorInfo,
+      required this.route,
+      required this.setAngle,
+      required this.maxOffline})
+      : super(key: key);
 
   @override
   State<PositioningVisualiser> createState() => _PositioningVisualiserState();
@@ -93,7 +93,7 @@ class MySketch extends PPainter {
     this.setAngle,
     this.maxOffline,
   );
-  
+
   void draw() {
     background(color(255, 255, 255));
 
@@ -106,6 +106,9 @@ class MySketch extends PPainter {
     // if there is no intersection we return
     if (intersection == null) return;
     // if there is a iintersection we draw it and store it in previous loc
+    if (previousLoc != intersection) {
+      log(intersection.toJson());
+    }
     previousLoc = intersection;
     drawPoint(intersection, Colors.cyan, 20);
 
@@ -170,8 +173,8 @@ class MySketch extends PPainter {
     List<Anchor> anchors = getAnchors();
     Point? intersection = mostLikelyPosistion(getIntersections(anchors));
     if (intersection != null) {
-      log(soundFile ?? '');
-      log((range ?? 0).toString());
+      // log(soundFile ?? '');
+      // log((range ?? 0).toString());
 
       if (soundFile != null) {
         intersection.soundFile = soundFile;

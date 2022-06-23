@@ -12,11 +12,8 @@ class PositioningScreen extends StatefulWidget {
   final BluetoothDevice device;
   final Route route;
 
-  PositioningScreen({
-    Key? key,
-    required this.device,
-    required this.route
-  }) : super(key: key);
+  PositioningScreen({Key? key, required this.device, required this.route})
+      : super(key: key);
 
   @override
   PositioningScreenState createState() => PositioningScreenState();
@@ -27,12 +24,12 @@ class PositioningScreenState extends State<PositioningScreen> {
   late PositioningVisualiser positionVisualizer;
   late final SoundController _controller;
   String soundFile =
-    'https://sfmygozkc1b6pom6ld5krvdok3dpc2eh.ui.nabu.casa/local/ping.mp3';
+      'https://sfmygozkc1b6pom6ld5krvdok3dpc2eh.ui.nabu.casa/local/ping.mp3';
 
   String rot1Val = '0';
   String rot2Val = '0';
   List<int> rot1 = [20, 20, 20];
-  List<int> rot2 = [20, 20, 20];
+  List<int> rot2 = [350, 500, 20];
 
   List<String> guids = [
     '667f1c78-be2e-11ec-9d64-0242ac120002', // rot 1
@@ -50,15 +47,16 @@ class PositioningScreenState extends State<PositioningScreen> {
   @override
   void initState() {
     super.initState();
-    _controller = SoundController(soundFile)
-      ..loopAudio(true);
+    _controller = SoundController(soundFile)..loopAudio(true);
 
     connectToBleDevice(widget.device).then((ble) {
       setState(() {
         bleDevice = ble;
       });
 
-      _addListeneres();
+      _setupAnchors().then((_) {
+        _addListeneres();
+      });
     });
 
     positionVisualizer = PositioningVisualiser(
@@ -68,6 +66,17 @@ class PositioningScreenState extends State<PositioningScreen> {
       setAngle: setAngle,
       maxOffline: 100,
     );
+  }
+
+  Future<void> _setupAnchors() async {
+    String uuid = '667f1c78-be2e-11ec-9d64-0242ac120004';
+    BluetoothCharacteristic bleChar = bleDevice.getBluetoothCharacterstic(uuid);
+
+    String createAnchorString() {
+      return '20|20:350|500';
+    }
+
+    return bleChar.write(createAnchorString().codeUnits);
   }
 
   void _addListeneres() async {
@@ -149,13 +158,10 @@ class PositioningScreenState extends State<PositioningScreen> {
                       children: [
                         FittedBox(
                           fit: BoxFit.contain,
-                          child: LayoutBuilder(builder: (
-                              BuildContext context, 
-                              BoxConstraints constraints
-                            ) {
-                              return positionVisualizer;
-                            }
-                          ),
+                          child: LayoutBuilder(builder: (BuildContext context,
+                              BoxConstraints constraints) {
+                            return positionVisualizer;
+                          }),
                         ),
                         Positioned(
                           top: 10,
@@ -183,12 +189,12 @@ class PositioningScreenState extends State<PositioningScreen> {
                             ),
                             onLongPress: () {
                               showDialog(
-                                context: context,
-                                builder: (context) {
-                                  return AddAudioPointDialog(
-                                    addRoute: positionVisualizer.addPoint,
-                                  );
-                                });
+                                  context: context,
+                                  builder: (context) {
+                                    return AddAudioPointDialog(
+                                      addRoute: positionVisualizer.addPoint,
+                                    );
+                                  });
                             },
                             onPressed: () {
                               positionVisualizer.addPoint(null, null);

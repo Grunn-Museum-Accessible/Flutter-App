@@ -105,7 +105,7 @@ class SoundController {
   Future setAngle(num angle) async {
     await _check();
     var coords = angleConverter.angleToCoords(angle);
-    log(coords.toString());
+    // log(coords.toString());
     await _controller?.evaluateJavascript(
         source: 'setListenerPosition(${coords['x']}, ${coords['y']})');
   }
