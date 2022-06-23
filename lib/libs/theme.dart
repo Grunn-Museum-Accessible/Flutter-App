@@ -16,11 +16,57 @@ class PrimaryTheme {
   );
 
   static TextTheme textThemeFonts = TextTheme(
-    headlineLarge: TextStyle(fontFamily: 'Eurostile'),
-    headlineMedium: TextStyle(fontFamily: 'Eurostile'),
-    headlineSmall: TextStyle(fontFamily: 'Eurostile'),
-    bodyLarge: TextStyle(fontFamily: 'NueuHaasUnica'),
-    bodyMedium: TextStyle(fontFamily: 'NueuHaasUnica'),
-    bodySmall: TextStyle(fontFamily: 'NueuHaasUnica'),
+    headline1: TextStyle(
+      color: lightColorScheme.onPrimary,
+      fontFamily: 'Eurostile',
+      fontSize: 28
+    ),
+    headline2: TextStyle(
+      color: lightColorScheme.onPrimary,
+      fontFamily: 'Eurostile',
+      fontSize: 26
+    ),
+    headline3: TextStyle(
+      color: lightColorScheme.onPrimary,
+      fontFamily: 'Eurostile',
+      fontSize: 22
+    ),
+    headline4: TextStyle(
+      color: lightColorScheme.onPrimary,
+      fontFamily: 'Eurostile',
+      fontSize: 20
+    ),
+    headline5: TextStyle(
+      color: lightColorScheme.onPrimary,
+      fontFamily: 'Eurostile',
+      fontSize: 16
+    ),
+    headline6: TextStyle(
+      color: lightColorScheme.onPrimary,
+      fontFamily: 'Eurostile',
+      fontSize: 14
+    ),
+    bodyText1: TextStyle(
+      color: lightColorScheme.onPrimary,
+      fontSize: 14,
+      fontWeight: FontWeight.w500,
+      height: 1.5
+    ),
+    bodyText2: TextStyle(
+      color: lightColorScheme.onPrimary,
+      fontSize: 14,
+      fontWeight: FontWeight.w500,
+      height: 1.5
+    ),
+    subtitle1: TextStyle(
+      color: lightColorScheme.onPrimary,
+      fontSize: 12,
+      fontWeight: FontWeight.w400
+    ),
+    subtitle2: TextStyle(
+      color: lightColorScheme.secondary,
+      fontSize: 12,
+      fontWeight: FontWeight.w400
+    )
   );
 }
