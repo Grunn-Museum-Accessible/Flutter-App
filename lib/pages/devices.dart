@@ -34,7 +34,6 @@ class DevicesScreenState extends State<DevicesScreen> {
       callback: (results) => setState(() {
         foundDevices = results;
         isScanning = false;
-        print("Got results!");
       })
     );
   }
@@ -49,7 +48,6 @@ class DevicesScreenState extends State<DevicesScreen> {
   void initState() {
     foundDevices = widget.devices;
     if (foundDevices.length == 0) {
-      print("Scanning...");
       _startScan();
     } else {
       isScanning = false;
