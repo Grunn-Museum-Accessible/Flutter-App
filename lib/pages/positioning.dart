@@ -3,7 +3,6 @@ import 'dart:math' as Math;
 import 'package:app/helpers/ble.dart';
 import 'package:app/libs/positioning/positioning.dart';
 import 'package:app/libs/surround_sound/src/sound_controller.dart';
-import 'package:app/widgets/AddAudioPointDialog.dart';
 import 'package:flutter/material.dart' hide Route;
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -192,39 +191,6 @@ class PositioningScreenState extends State<PositioningScreen> {
                             ),
                           ),
                         ),
-                        Positioned(
-                          bottom: 24,
-                          child: ElevatedButton(
-                            style: ButtonStyle(
-                              shape: MaterialStateProperty.all(
-                                CircleBorder(),
-                              ),
-                              backgroundColor: MaterialStateProperty.all(
-                                Color.fromARGB(255, 212, 255, 0),
-                              ),
-                            ),
-                            onLongPress: () {
-                              showDialog(
-                                  context: context,
-                                  builder: (context) {
-                                    return AddAudioPointDialog(
-                                      addRoute: positionVisualizer.addPoint,
-                                    );
-                                  });
-                            },
-                            onPressed: () {
-                              positionVisualizer.addPoint(null, null);
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Icon(
-                                Icons.add,
-                                size: 48,
-                                color: Color.fromARGB(255, 38, 38, 38),
-                              ),
-                            ),
-                          ),
-                        )
                       ],
                     ),
                   ],

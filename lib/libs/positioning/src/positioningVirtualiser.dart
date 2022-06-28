@@ -49,7 +49,7 @@ class _PositioningVisualiserState extends State<PositioningVisualiser>
       widget.setAngle,
       widget.maxOffline,
     );
-    widget.addPoint = sketch.addPoint;
+
     // Need an animator to call the draw() method in the sketch continuously,
     // otherwise it will be called only when touch events are detected.
     animator = PAnimator(this);
@@ -107,7 +107,7 @@ class MySketch extends PPainter {
     if (intersection == null) return;
     // if there is a iintersection we draw it and store it in previous loc
     if (previousLoc != intersection) {
-      log(intersection.toJson());
+      log(intersection.toJSON());
     }
     previousLoc = intersection;
     drawPoint(intersection, Colors.cyan, 20);
@@ -188,23 +188,6 @@ class MySketch extends PPainter {
         .map((e) => getIntersections(e))
         .forEach((element) => intersections.addAll(element));
     return intersections;
-  }
-
-  /// add the current point to the line
-  void addPoint(String? soundFile, num? range) {
-    List<Anchor> anchors = getAnchors();
-    Point? intersection = mostLikelyPosistion(getIntersections(anchors));
-    if (intersection != null) {
-      // log(soundFile ?? '');
-      // log((range ?? 0).toString());
-
-      if (soundFile != null) {
-        intersection.soundFile = soundFile;
-        intersection.soundRange = range;
-      }
-
-      route.addPart(intersection);
-    }
   }
 
   void drawLine(Point start, Point end) {

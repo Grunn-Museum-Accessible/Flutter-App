@@ -7,7 +7,7 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 final AudioManager audioManager = AudioManager();
 final AngleConverter angleConverter = AngleConverter();
 final InAppLocalhostServer localhostServer = InAppLocalhostServer();
-final RestApi restAPI = RestApi(host: '192.168.1.53');
+final RestClient restAPI = RestClient();
 
 Future<String> loadAsset(String assetPath) async {
   return rootBundle.loadString(assetPath);

@@ -31,7 +31,7 @@ class Line {
       other is Line && (other.start == start && other.end == end);
 
   String toJson() {
-    return '{"start": ${start.toJson()}, "end":${end.toJson()}, "maxDistance": "$maxDistance"}';
+    return '{"start": ${start.toJSON()}, "end":${end.toJSON()}, "maxDistance": "$maxDistance"}';
   }
 
   get angle {
