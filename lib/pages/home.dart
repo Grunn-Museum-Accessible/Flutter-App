@@ -27,9 +27,7 @@ class HomeScreenState extends State<HomeScreen> {
     getAllRoutes();
   }
 
-  getAllRoutes([
-    String path = '/',
-  ]) {
+  getAllRoutes([String path = '/']) {
     get(Uri.http(serverUrl, path)).then((res) {
       if (res.statusCode == 200) {
         setState(() {
@@ -58,6 +56,7 @@ class HomeScreenState extends State<HomeScreen> {
           ),
           IconButton(
             onPressed: () {
+              deleteRoute(route.name);
               log('[DEBUG] : DELETE ROUTE');
             },
             icon: Icon(Icons.delete_forever),
@@ -102,7 +101,7 @@ class HomeScreenState extends State<HomeScreen> {
           Expanded(
             child: RefreshIndicator(
               onRefresh: () async {
-                getAllRoutes('192.168.1.53');
+                getAllRoutes();
               },
               child: ListView.builder(
                 scrollDirection: Axis.vertical,
@@ -117,5 +116,17 @@ class HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
+  }
+
+  void deleteRoute(String name, [String path = '/delete']) {
+    Map<String, dynamic> body = Map();
+
+    body['name'] = name;
+
+    post(Uri.http(serverUrl, path), body: body).then((res) {
+      if (res.statusCode == 410) {
+        getAllRoutes();
+      }
+    });
   }
 }
