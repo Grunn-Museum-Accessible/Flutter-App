@@ -1,3 +1,5 @@
+// ignore_for_file: lines_longer_than_80_chars
+
 import 'dart:convert' show jsonDecode;
 import 'dart:math';
 
@@ -23,9 +25,8 @@ class Point {
       soundFile = parsedJson['soundFile'];
       soundRange = parsedJson['soundRange'];
     }
-
-    x = num.parse(parsedJson['x']);
-    y = num.parse(parsedJson['y']);
+    x = num.parse(parsedJson['x'].toString());
+    y = num.parse(parsedJson['y'].toString());
   }
 
   get offset => Offset(x.toDouble(), y.toDouble());

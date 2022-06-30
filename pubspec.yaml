@@ -10,6 +10,7 @@ environment:
 
 dependencies:
   audioplayers: ^0.20.1
+  filesystem_picker: ^2.0.1
   flutter:
     sdk: flutter
   flutter_blue: 

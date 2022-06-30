@@ -1,18 +1,34 @@
-import 'dart:convert';
-import 'dart:developer';
+// ignore_for_file: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member, lines_longer_than_80_chars
 
-import 'package:app/helpers/globals.dart';
+import 'dart:convert';
+import 'dart:math';
+
 import 'package:app/libs/PositioningVisualizer/positioningVisualiser.dart';
+import 'package:flutter/cupertino.dart';
 
 class Route {
   late String name;
   late String description;
+  late String image;
 
-  late List<Line> parts;
+  ValueNotifier<List<Line>> _parts = ValueNotifier<List<Line>>([]);
+
+  List<Line> get parts => _parts.value;
+  set parts(List<Line> newParts) => _parts.value = newParts;
+
+  get routePartNotifier => _parts;
+
   Point? tempLast;
-  Route(this.name, this.description, this.parts);
+  Route(this.name, this.description, this.image, parts) {
+    _parts.value = parts;
+  }
 
-  Route.fromList(this.name, this.description, List<List<num>> list) {
+  Route.fromList(
+    this.name,
+    this.description,
+    this.image,
+    List<List<num>> list,
+  ) {
     parts = [];
     for (int i = 0; i < list.length - 1; i++) {
       parts.add(
@@ -27,12 +43,15 @@ class Route {
           ),
         ),
       );
+      _parts.notifyListeners();
     }
   }
 
   Route.fromString(String source) {
     var parsed = jsonDecode(source);
     name = parsed['name'];
+    image = parsed['image'];
+    description = parsed['description'];
 
     parts = [];
     parsed['parts'].forEach((element) {
@@ -43,6 +62,8 @@ class Route {
       });
       parts.add(Line(lineEnds[0], lineEnds[1]));
     });
+
+    _parts.notifyListeners();
   }
 
   static List<Route> routeListFromString(String json) {
@@ -72,6 +93,7 @@ class Route {
       return Route(
         i['name'] ?? '',
         i['description'] ?? '',
+        i['image'] ?? '',
         _parts,
       );
     }).toList();
@@ -79,7 +101,7 @@ class Route {
 
   String toJson() {
     String json =
-        '{"name": "$name",  "description", "$description", "parts": [';
+        '{"name": "$name", "image": "$image" "description", "$description", "parts": [';
     json += parts.map((e) => e.toJson()).join(',');
     json += ']}';
 
@@ -116,10 +138,54 @@ class Route {
 
   void addPart(Point point) {
     if (length > 0 || tempLast != null) {
-      parts.add(Line(end, point));
+      _parts.value.add(Line(end, point));
+      _parts.notifyListeners();
     } else {
       tempLast = point;
     }
+  }
+
+  List<Point> get bounds {
+    if (parts.isEmpty) {
+      return [];
+    }
+    // get list of x's and y's
+    List<num> xs = [parts.first.start.x];
+    List<num> ys = [parts.first.start.y];
+    parts.forEach((element) {
+      xs.add(element.end.x);
+      ys.add(element.end.y);
+    });
+
+    // get x range
+    num minX = xs.reduce(min);
+    num maxX = xs.reduce(max);
+
+    // get y range
+    num minY = ys.reduce(min);
+    num maxY = ys.reduce(max);
+
+    return [
+      Point(minX, minY),
+      Point(maxX, maxY),
+    ];
+  }
+
+  List<String> get AudioFiles {
+    List<String> files = [];
+
+    parts.forEach((part) {
+      if (part.start.soundFile != null) {
+        files.add(part.start.soundFile!);
+      }
+
+      if (part.end.soundFile != null) {
+        files.add(part.end.soundFile!);
+      }
+      // files.addAll([part.start.soundFile, part.end.soundFile]);
+    });
+
+    return files;
   }
 
   operator ==(Object other) {

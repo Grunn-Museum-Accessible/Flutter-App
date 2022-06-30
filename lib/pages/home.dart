@@ -1,8 +1,10 @@
 import 'dart:developer';
 
+import 'package:app/helpers/globals.dart';
 import 'package:app/libs/PositioningVisualizer/positioningVisualiser.dart';
 import 'package:app/libs/theme.dart';
 import 'package:app/pages/EditRoute.dart';
+import 'package:app/pages/newRoute.dart';
 import 'package:flutter/material.dart' hide Theme, Route;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart';
@@ -25,8 +27,10 @@ class HomeScreenState extends State<HomeScreen> {
     getAllRoutes();
   }
 
-  getAllRoutes([String url = 'groninger-museum-api.herokuapp.com']) {
-    get(Uri.http(url, '/')).then((res) {
+  getAllRoutes([
+    String path = '/',
+  ]) {
+    get(Uri.http(serverUrl, path)).then((res) {
       if (res.statusCode == 200) {
         setState(() {
           routes = Route.routeListFromString(res.body);
@@ -78,22 +82,37 @@ class HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+              context, MaterialPageRoute(builder: (context) => NewRoute()));
+        },
+        label: Text('Nieuwe route'),
+        icon: Icon(Icons.add),
+      ),
       body: Column(
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(18.0, 20, 0, 0),
             child: Text(
-              "Huidige routes",
+              'Huidige routes',
               style: TextStyle(color: theme.text, fontSize: 24),
             ),
           ),
-          ListView.builder(
-            scrollDirection: Axis.vertical,
-            shrinkWrap: true,
-            itemCount: (routes ?? []).length,
-            itemBuilder: (context, index) {
-              return buildRouteItem(routes![index]);
-            },
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () async {
+                getAllRoutes('192.168.1.53');
+              },
+              child: ListView.builder(
+                scrollDirection: Axis.vertical,
+                shrinkWrap: true,
+                itemCount: (routes ?? []).length,
+                itemBuilder: (context, index) {
+                  return buildRouteItem(routes![index]);
+                },
+              ),
+            ),
           )
         ],
       ),

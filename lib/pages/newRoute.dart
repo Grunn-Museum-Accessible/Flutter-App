@@ -1,24 +1,31 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
 import 'package:app/helpers/globals.dart';
 import 'package:app/libs/PositioningVisualizer/positioningVisualiser.dart';
 import 'package:app/pages/nfc.dart';
+import 'package:app/widgets/spacer.dart';
 import 'package:filesystem_picker/filesystem_picker.dart';
-import 'package:flutter/material.dart' hide Theme, Route;
+import 'package:flutter/material.dart' hide Theme, Route, Spacer;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
 
 // ignore: must_be_immutable
-class EditRoute extends StatefulWidget {
-  Route route;
+class NewRoute extends StatefulWidget {
+  Route route = Route(
+    'Titel',
+    'Omschrijving',
+    'https://via.placeholder.com/480x270?text=Pas+thumbnail+aan',
+    <Line>[],
+  );
 
-  EditRoute(this.route, {Key? key}) : super(key: key);
+  NewRoute({Key? key}) : super(key: key);
   @override
-  EditRouteState createState() => EditRouteState();
+  NewRouteState createState() => NewRouteState();
 }
 
-class EditRouteState extends State<EditRoute> {
+class NewRouteState extends State<NewRoute> {
   List<Route>? routes;
 
   @override
@@ -26,11 +33,19 @@ class EditRouteState extends State<EditRoute> {
     super.initState();
     name = widget.route.name;
     desc = widget.route.description;
+    createNewRedraw = redraw;
   }
 
   String name = '';
   String desc = '';
   String image = '';
+
+  int stateChange = 0;
+  void redraw() {
+    setState(() {
+      stateChange++;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,8 +63,9 @@ class EditRouteState extends State<EditRoute> {
         ),
       ),
       floatingActionButton: Visibility(
-        visible: (widget.route.name != name) ||
-            (widget.route.description != desc) ||
+        visible: widget.route.routePartNotifier.value.isNotEmpty &&
+            name.length > 1 &&
+            desc.length > 1 &&
             image != '',
         child: FloatingActionButton.extended(
           // color: Colors.blue,
@@ -186,19 +202,40 @@ class EditRouteState extends State<EditRoute> {
                                 ),
                               ],
                             ),
-                            // Positioned(
-                            //   right: 8,
-                            //   child: IgnorePointer(
-                            //     child: Icon(
-                            //       Icons.edit,
-                            //       color: Colors.white,
-                            //       size: 22,
-                            //     ),
-                            //   ),
-                            // )
+                            Visibility(
+                              visible: widget
+                                  .route.routePartNotifier.value.isNotEmpty,
+                              child: Positioned(
+                                right: 8,
+                                child: IgnorePointer(
+                                  child: Icon(
+                                    Icons.edit,
+                                    color: Colors.white,
+                                    size: 22,
+                                  ),
+                                ),
+                              ),
+                            )
                           ],
                         ),
-                        RoutePreview(route: widget.route),
+                        Visibility(
+                          visible:
+                              widget.route.routePartNotifier.value.isNotEmpty,
+                          child: RoutePreview(route: widget.route),
+                          replacement: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Spacer(20),
+                              Text(
+                                'Klik hier om route aan te maken.',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
                       ],
                     ),
                   ),
@@ -211,14 +248,14 @@ class EditRouteState extends State<EditRoute> {
     );
   }
 
-  updateServer([String path = '/update']) {
+  updateServer([String path = '/create']) {
     http.MultipartRequest req =
         http.MultipartRequest('POST', Uri.http(serverUrl, path));
 
-    req.fields['name'] = widget.route.name;
-    req.fields['new_name'] = name;
-    req.fields['new_description'] = desc;
+    req.fields['name'] = name;
+    req.fields['description'] = desc;
 
+    // add thumbnail
     if (image != '') {
       req.files.add(
         http.MultipartFile(
@@ -229,6 +266,17 @@ class EditRouteState extends State<EditRoute> {
         ),
       );
     }
+
+    req.fields['parts'] =
+        "[" + widget.route.parts.map((e) => e.toJson()).join(',') + "]";
+    widget.route.AudioFiles.forEach((element) {
+      req.files.add(http.MultipartFile(
+        'file',
+        File(element).readAsBytes().asStream(),
+        File(element).lengthSync(),
+        filename: element,
+      ));
+    });
 
     req.send().then((http.StreamedResponse resS) async {
       var res = await http.Response.fromStream(resS);

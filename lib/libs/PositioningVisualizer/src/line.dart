@@ -1,3 +1,5 @@
+// ignore_for_file: lines_longer_than_80_chars, always_use_package_imports
+
 import 'dart:convert';
 import 'dart:math' show atan2, pi, sqrt;
 

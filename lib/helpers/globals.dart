@@ -1,4 +1,6 @@
-// ignore_for_file: lines_longer_than_80_chars
 import 'package:app/libs/theme.dart';
 
 ColorTheme theme = Theme.dark;
+
+String serverUrl = '192.168.1.53';
+var createNewRedraw;

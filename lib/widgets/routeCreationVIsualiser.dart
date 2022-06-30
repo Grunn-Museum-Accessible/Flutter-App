@@ -2,37 +2,29 @@
 
 import 'dart:developer';
 import 'dart:math' hide log;
-import 'package:app/libs/PositioningVisualizer/src/route.dart';
+import 'package:app/helpers/globals.dart';
+import 'package:app/libs/PositioningVisualizer/positioningVisualiser.dart';
 import 'package:flutter/material.dart' hide Route;
-
-import './anchor.dart';
-import './line.dart';
-import './point.dart';
 
 import 'package:p5/p5.dart';
 
-class PositioningVisualiser extends StatefulWidget {
+class CreateRouteVisualizer extends StatefulWidget {
   final List<Anchor> Function() getAnchorInfo;
-  final void Function(num angle) setAngle;
   late final void Function(String? audioFile, num? range) addPoint;
 
   final Route route;
 
-  final num maxOffline;
-
-  PositioningVisualiser(
-      {Key? key,
-      required this.getAnchorInfo,
-      required this.route,
-      required this.setAngle,
-      required this.maxOffline})
-      : super(key: key);
+  CreateRouteVisualizer({
+    Key? key,
+    required this.getAnchorInfo,
+    required this.route,
+  }) : super(key: key);
 
   @override
-  State<PositioningVisualiser> createState() => _PositioningVisualiserState();
+  State<CreateRouteVisualizer> createState() => _CreateRouteVisualizerState();
 }
 
-class _PositioningVisualiserState extends State<PositioningVisualiser>
+class _CreateRouteVisualizerState extends State<CreateRouteVisualizer>
     with SingleTickerProviderStateMixin {
   late MySketch sketch;
   late PAnimator animator;
@@ -44,10 +36,11 @@ class _PositioningVisualiserState extends State<PositioningVisualiser>
     sketch = MySketch(
       widget.getAnchorInfo,
       widget.route,
-      widget.setAngle,
-      widget.maxOffline,
     );
-    widget.addPoint = sketch.addPoint;
+    widget.addPoint = (String? soundPath, num? SoundRange) {
+      sketch.addPoint(soundPath, SoundRange);
+      createNewRedraw();
+    };
     // Need an animator to call the draw() method in the sketch continuously,
     // otherwise it will be called only when touch events are detected.
     animator = PAnimator(this);
@@ -80,22 +73,15 @@ class _PositioningVisualiserState extends State<PositioningVisualiser>
 
 class MySketch extends PPainter {
   List<Anchor> Function() getAnchors;
-  void Function(num angle) setAngle;
   Route route;
   Point? previousLoc;
-
-  num maxOffline;
 
   MySketch(
     this.getAnchors,
     this.route,
-    this.setAngle,
-    this.maxOffline,
   );
 
-  void setup() {
-    // size(300, 300);
-  }
+  void setup() {}
 
   void draw() {
     background(color(255, 255, 255));
@@ -111,61 +97,6 @@ class MySketch extends PPainter {
     // if there is a iintersection we draw it and store it in previous loc
     previousLoc = intersection;
     drawPoint(intersection, Colors.cyan, 20);
-
-    // if the length of the route is 0 we dont need to do anything
-    // from this point
-    if (route.length <= 0) return;
-
-    // calulate the closest line, the angle, and distance towards it.
-    Point closestPoint = getClosestPointOnRoute(intersection, route);
-    num angleOfLine = Line(intersection, closestPoint).angle;
-    num distanceToClosestPoint = Line(intersection, closestPoint).length;
-
-    // make variable to store the point to navigate to
-    Point nextWaypoint = closestPoint;
-
-    if (distanceToClosestPoint >
-        getClosestPartOfRoute(closestPoint, route).maxDistance) {
-      // if the distance from the line is bigger than the configured distance
-      // we navigate directly to it
-      angleOfLine += 90;
-    } else {
-      // if it is smaller than we navigate to the next point on the line
-
-      // get the closest part of the route to the current possition
-      Line closestLine = getClosestPartOfRoute(intersection, route);
-
-      // if we are close enoguh to the end of the line we
-      // navigate to the next lines end
-      if (Line(closestPoint, closestLine.end).length < 30) {
-        // get the next line to get its end. if there are no parts left
-        // we take the current line
-        Line nextLine = route.getNextPart(closestLine) ?? closestLine;
-        nextWaypoint = nextLine.end;
-
-        // calculate the angle to the next waypoint
-        angleOfLine = Line(
-          intersection,
-          nextLine.end,
-        ).angle;
-      } else {
-        // else we navigate to the end of the closest line
-        nextWaypoint = closestLine.end;
-
-        angleOfLine = Line(
-          intersection,
-          closestLine.end,
-        ).angle;
-      }
-      angleOfLine += 90;
-    }
-
-    // set the angle of the arrow
-    setAngle(angleOfLine);
-
-    // draw line to next waypoint
-    drawLine(intersection, nextWaypoint);
-    drawPoints([nextWaypoint]);
   }
 
   /// add the current point to the line
@@ -183,17 +114,6 @@ class MySketch extends PPainter {
 
       route.addPart(intersection);
     }
-  }
-
-  void drawLine(Point start, Point end) {
-    stroke(Colors.black);
-    strokeWeight(4);
-    line(
-      start.x.toDouble(),
-      start.y.toDouble(),
-      end.x.toDouble(),
-      end.y.toDouble(),
-    );
   }
 
   Point getClosestPointOnLine(Point point, Line line) {
@@ -285,14 +205,6 @@ class MySketch extends PPainter {
     return line;
   }
 
-  Point getClosestPointOnRoute(
-    Point point,
-    Route path,
-  ) {
-    Line pathPart = getClosestPartOfRoute(point, path);
-    return getClosestPointOnLine(point, pathPart);
-  }
-
   /// draw all parts of a route
   void drawPath(Route route) {
     strokeWeight(5);
@@ -321,31 +233,6 @@ class MySketch extends PPainter {
   void drawPoints(List<Point> points, [Color? fillColor, num? size]) {
     points.forEach((point) {
       drawPoint(point, fillColor, size);
-    });
-  }
-
-  /// draw the anchors and the posible positions from it
-  void drawAnchors(List<Anchor> anchors) {
-    anchors.forEach((pos) {
-      strokeWeight(10);
-      stroke(Colors.black);
-      // stroke(Color.fromARGB(255, 212, 255, 0));
-      paintCanvas.drawCircle(
-        pos.offset,
-        pos.distance.toDouble(),
-        strokePaint,
-      );
-      // Stroke
-      strokeWeight(6);
-      stroke(Color.fromARGB(255, 212, 255, 0));
-      paintCanvas.drawCircle(
-        pos.offset,
-        pos.distance.toDouble(),
-        strokePaint,
-      );
-
-      fill(Colors.black);
-      paintCanvas.drawCircle(pos.offset, 5, fillPaint);
     });
   }
 
@@ -393,7 +280,7 @@ class MySketch extends PPainter {
 
   // draw the give anchors, route and sound points in the route
   void drawStatic(List<Anchor> anchors) {
-    drawAnchors(anchors);
+    // drawAnchors(anchors);
     drawPath(route);
 
     drawSoundPointsInRoute();

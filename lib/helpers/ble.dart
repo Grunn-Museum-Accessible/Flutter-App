@@ -1,5 +1,10 @@
+// ignore_for_file: lines_longer_than_80_chars
+
 import 'dart:async';
 
+import 'package:app/libs/PositioningVisualizer/positioningVisualiser.dart';
+import 'package:app/pages/positioning.dart';
+import 'package:flutter/material.dart' hide Route;
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -23,6 +28,55 @@ checkBlePerm() async {
   if (await Permission.bluetooth.status.isPermanentlyDenied) {
     openAppSettings();
   }
+}
+
+List<Widget> buildConnectedDevices(
+    BuildContext context, List<ScanResult> devices, Route route) {
+  ThemeData themeData = Theme.of(context);
+  List<Widget> widgets = [];
+
+  devices.forEach((d) => widgets.add(ListTile(
+      title: Text(d.device.name, style: themeData.textTheme.headline6),
+      subtitle:
+          Text(d.device.id.toString(), style: themeData.textTheme.subtitle2),
+      trailing: IconButton(
+        icon: Icon(
+          Icons.bluetooth_searching_rounded,
+          color: Color(0xFF000000),
+        ),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  PositioningScreen(device: d.device, route: route),
+            ),
+          );
+        },
+        tooltip: 'Verbind met ${d.device.name}',
+      ))));
+
+  return widgets;
+}
+
+void scanDevices(
+    {required BuildContext context,
+    required Route route,
+    required FlutterBlue flutterBlue,
+    required void Function(List<ScanResult> results) callback}) async {
+  await Permission.bluetoothScan.request();
+  await Permission.bluetooth.request();
+  await Permission.bluetoothConnect.request();
+  await Permission.location.request();
+
+  await flutterBlue.stopScan();
+
+  flutterBlue.startScan(timeout: Duration(seconds: 5));
+  flutterBlue.scanResults.listen((results) {
+    if (results.length > 0) {
+      callback(results);
+    }
+  });
 }
 
 class BleDevice {
@@ -53,9 +107,10 @@ class BleDevice {
   }
 
   Future<void> deconstruct() async {
-    await _device.disconnect();
-    listeners.forEach((key, value) {
-      value.cancel();
+    _device.disconnect().then((_) {
+      listeners.forEach((key, value) {
+        value.cancel();
+      });
     });
   }
 
