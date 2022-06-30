@@ -1,12 +1,9 @@
-import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
-import 'package:app/helpers/globals.dart';
 import 'package:app/widgets/spacer.dart';
 import 'package:filesystem_picker/filesystem_picker.dart';
 import 'package:flutter/material.dart' hide Spacer, Route;
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
 
 class AddAudioPointDialog extends StatefulWidget {
   final void Function(String? audioFile, num? range) addRoute;

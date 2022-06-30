@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
@@ -268,8 +267,8 @@ class NewRouteState extends State<NewRoute> {
     }
 
     req.fields['parts'] =
-        "[" + widget.route.parts.map((e) => e.toJson()).join(',') + "]";
-    widget.route.AudioFiles.forEach((element) {
+        '[' + widget.route.parts.map((e) => e.toJson()).join(',') + ']';
+    widget.route.audioFiles.forEach((element) {
       req.files.add(http.MultipartFile(
         'file',
         File(element).readAsBytes().asStream(),

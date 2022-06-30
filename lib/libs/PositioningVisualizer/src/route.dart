@@ -171,7 +171,7 @@ class Route {
     ];
   }
 
-  List<String> get AudioFiles {
+  List<String> get audioFiles {
     List<String> files = [];
 
     parts.forEach((part) {

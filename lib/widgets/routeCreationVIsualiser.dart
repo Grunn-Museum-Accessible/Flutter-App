@@ -37,8 +37,8 @@ class _CreateRouteVisualizerState extends State<CreateRouteVisualizer>
       widget.getAnchorInfo,
       widget.route,
     );
-    widget.addPoint = (String? soundPath, num? SoundRange) {
-      sketch.addPoint(soundPath, SoundRange);
+    widget.addPoint = (String? soundPath, num? soundRange) {
+      sketch.addPoint(soundPath, soundRange);
       createNewRedraw();
     };
     // Need an animator to call the draw() method in the sketch continuously,
