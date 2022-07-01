@@ -9,7 +9,7 @@ class Line {
 
   late num maxDistance;
 
-  Line(this.start, this.end, [this.maxDistance = 100]);
+  Line(this.start, this.end, [this.maxDistance = 30]);
   Line.fromString(String json) {
     var parsed = jsonDecode(json);
     start = Point(
@@ -22,7 +22,7 @@ class Line {
       num.parse(parsed['end']['y']),
     );
 
-    maxDistance = num.tryParse(parsed['maxDistance']) ?? 100;
+    maxDistance = num.tryParse(parsed['maxDistance']) ?? 30;
   }
 
   @override

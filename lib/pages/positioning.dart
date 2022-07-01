@@ -1,6 +1,7 @@
 import 'dart:math' as Math;
 
 import 'package:app/helpers/ble.dart';
+import 'package:app/helpers/globals.dart';
 import 'package:app/libs/positioning/positioning.dart';
 import 'package:app/libs/surround_sound/src/sound_controller.dart';
 import 'package:flutter/material.dart' hide Route;
@@ -40,6 +41,7 @@ class PositioningScreenState extends State<PositioningScreen> {
   @override
   void dispose() async {
     _controller.dispose();
+    audioPlayer.dispose();
     super.dispose();
     await bleDevice.deconstruct();
   }
@@ -127,84 +129,86 @@ class PositioningScreenState extends State<PositioningScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color.fromARGB(255, 38, 38, 38),
-      appBar: AppBar(
+    return ExcludeSemantics(
+      child: Scaffold(
         backgroundColor: Color.fromARGB(255, 38, 38, 38),
-        foregroundColor: Colors.white,
-        elevation: 0,
-        title: Center(
-          child: SvgPicture.asset(
-            'assets/images/groningerMuseumLogo.svg',
-            color: Colors.white,
+        appBar: AppBar(
+          backgroundColor: Color.fromARGB(255, 38, 38, 38),
+          foregroundColor: Colors.white,
+          elevation: 0,
+          title: Center(
+            child: SvgPicture.asset(
+              'assets/images/groningerMuseumLogo.svg',
+              color: Colors.white,
+            ),
           ),
         ),
-      ),
-      body: Container(
-        height: MediaQuery.of(context).size.height,
-        child: FittedBox(
-          fit: BoxFit.fitWidth,
-          child: Column(
-            children: [
-              Center(
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Column(
+        body: Container(
+          height: MediaQuery.of(context).size.height,
+          child: FittedBox(
+            fit: BoxFit.fitWidth,
+            child: Column(
+              children: [
+                Center(
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Column(
+                          children: [
+                            Text(
+                              'Distance of anchor 1: ' + anchor1[2].toString(),
+                              style: TextStyle(fontSize: 20, color: Colors.white),
+                            ),
+                            Text(
+                              'Distance of anchor 2: ' + anchor2[2].toString(),
+                              style: TextStyle(fontSize: 20, color: Colors.white),
+                            ),
+                            Text(
+                              'Distance of anchor 3: ' + anchor3[2].toString(),
+                              style: TextStyle(fontSize: 20, color: Colors.white),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Stack(
+                        alignment: Alignment.center,
                         children: [
-                          Text(
-                            'Distance of anchor 1: ' + anchor1[2].toString(),
-                            style: TextStyle(fontSize: 20, color: Colors.white),
+                          FittedBox(
+                            fit: BoxFit.contain,
+                            child: LayoutBuilder(builder: (BuildContext context,
+                                BoxConstraints constraints) {
+                              return positionVisualizer;
+                            }),
                           ),
-                          Text(
-                            'Distance of anchor 2: ' + anchor2[2].toString(),
-                            style: TextStyle(fontSize: 20, color: Colors.white),
-                          ),
-                          Text(
-                            'Distance of anchor 3: ' + anchor3[2].toString(),
-                            style: TextStyle(fontSize: 20, color: Colors.white),
+                          Positioned(
+                            top: 10,
+                            right: 20,
+                            child: AnimatedRotation(
+                              curve: Curves.easeInOut,
+                              duration: Duration(milliseconds: 300),
+                              turns: arrowAngle.toDouble() / 360,
+                              child: Image.asset(
+                                'assets/images/arrow.png',
+                                height: 100,
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        FittedBox(
-                          fit: BoxFit.contain,
-                          child: LayoutBuilder(builder: (BuildContext context,
-                              BoxConstraints constraints) {
-                            return positionVisualizer;
-                          }),
-                        ),
-                        Positioned(
-                          top: 10,
-                          right: 20,
-                          child: AnimatedRotation(
-                            curve: Curves.easeInOut,
-                            duration: Duration(milliseconds: 300),
-                            turns: arrowAngle.toDouble() / 360,
-                            child: Image.asset(
-                              'assets/images/arrow.png',
-                              height: 100,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  void checkDistance(num distance) async {
-    if (distance > 30) {
+  void checkDistance(num distance, num maxDist) async {
+    if (distance > maxDist) {
       await _controller.loopAudio(true);
       await _controller.play();
     } else {

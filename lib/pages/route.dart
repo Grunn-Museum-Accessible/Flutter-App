@@ -81,15 +81,21 @@ class RouteScreenState extends State<RouteScreen> {
                   backgroundColor: Colors.white
                 ),
                 onPressed: () => setState(() {
-                  started = !started;
-                  if (started) {
-                    Navigator.push(context, 
-                      MaterialPageRoute(builder: (context) => PositioningScreen(
-                        device: widget.device,
-                        route: widget.route
-                      ))
-                    );
-                  }
+                  // started = !started;
+                  // if (started) {
+                  //   Navigator.push(context, 
+                  //     MaterialPageRoute(builder: (context) => PositioningScreen(
+                  //       device: widget.device,
+                  //       route: widget.route
+                  //     ))
+                  //   );
+                  // }
+                  Navigator.push(context, 
+                    MaterialPageRoute(builder: (context) => PositioningScreen(
+                      device: widget.device,
+                      route: widget.route
+                    ))
+                  );
                 })
               ),
             )

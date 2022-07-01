@@ -21,14 +21,11 @@ String html = '''<!DOCTYPE html>
             let vol = 0.5;
 
             function log(str) {
-                // window.flutter_inappwebview.callHandler('debugLog', str)
                 console.error(str);
             }
 
             async function _things() {
                 try {
-                    log("_things called");
-
                     let AudioContext = window.AudioContext || window.webkitAudioContext;
                     audioCtx = new AudioContext();
 
@@ -55,7 +52,7 @@ String html = '''<!DOCTYPE html>
                     volumeController.gain.value = vol;
                     loadAudio();
                 } catch (e) {
-                    log("" + e);
+                    log(e.message);
                 }
             }
 
@@ -73,8 +70,6 @@ String html = '''<!DOCTYPE html>
 
             async function init_sound() {
                 try {
-                    log("init_sound called");
-
                     if (!audioCtx) {
                         await _things();
                     }
@@ -83,7 +78,7 @@ String html = '''<!DOCTYPE html>
                         audioCtx.resume();
                     }
                 } catch (e) {
-                    log("" + e);
+                    log(e.message);
                 }
             }
 
@@ -96,13 +91,11 @@ String html = '''<!DOCTYPE html>
 
             function play() {
                 playing = true;
-                log("starting playing");
                 audioCtx.resume();
             }
 
             function pause() {
                 playing = false;
-                log("stopped playing");
                 audioCtx.suspend();
             }
 
@@ -116,50 +109,41 @@ String html = '''<!DOCTYPE html>
 
             function stop() {
                 try {
-                    log("stop called");
-
                     if (started) {
                         source.stop(0);
                         started = false;
                     }
                     started = false;
                 } catch (e) {
-                    log("" + e);
+                    log(e.message);
                 }
             }
 
             function setListenerPosition(x, y) {
                 try {
-                    log("setListenerPosition called");
-
                     listener.setPosition(x, y, 0);
                 } catch (e) {
-                    log("" + e);
+                    log(e.message);
                 }
             }
 
             function set_volume(v) {
                 try {
-                    log("setVolume called");
-
                     vol = v;
                     volumeController.gain.value = vol;
                 } catch (e) {
-                    log("" + e);
+                    log(e.message);
                 }
             }
 
             function loadAudio(src = "https://sfmygozkc1b6pom6ld5krvdok3dpc2eh.ui.nabu.casa/local/ping.mp3") {
                 try {
-                    log("loadAudio called");
-
                     request = new XMLHttpRequest();
 
                     request.open("GET", src, true);
                     request.responseType = "arraybuffer";
                     request.onload = function () {
                         audioCtx.decodeAudioData(request.response, onDecoded);
-                        log("data");
                     };
                     request.onerror;
 
@@ -172,7 +156,7 @@ String html = '''<!DOCTYPE html>
                     }
                     request.send();
                 } catch (e) {
-                    log("" + e);
+                    log(e.message);
                 }
             }
 

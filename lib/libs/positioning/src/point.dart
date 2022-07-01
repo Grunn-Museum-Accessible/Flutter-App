@@ -1,6 +1,7 @@
 import 'dart:convert' show jsonDecode;
 import 'dart:math';
 
+import 'package:app/helpers/restApi.dart';
 import 'package:flutter/material.dart';
 
 class Point {
@@ -31,6 +32,7 @@ class Point {
 
   get offset => Offset(x.toDouble(), y.toDouble());
   get hasSound => soundRange != null;
+  get soundURL => hasSound ? RestClient.baseUrl + soundFile! : null;
 
   @override
   bool operator ==(Object other) =>
