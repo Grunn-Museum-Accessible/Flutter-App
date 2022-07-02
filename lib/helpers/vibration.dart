@@ -1,10 +1,9 @@
 import 'dart:async';
-
-import 'package:flutter/services.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 
 class Vibration {
-  String mode = 'heavy';
+  bool running = false;
+  Duration duration = Duration(milliseconds: 600);
   late Timer timer;
 
   Vibration() {
@@ -16,22 +15,23 @@ class Vibration {
   }
 
   Future doLoop() async {
-    timer = Timer.periodic(Duration(milliseconds: 600), (timer) {
-      //code to run on every 5 seconds
+    timer = Timer(duration, () {
       if (running) {
         vibrate();
       }
+
+      doLoop();
     });
   }
 
   void vibrate() {
-    // if (mode == 'heavy') {
     Vibrate.vibrate();
-
-    // }
   }
 
-  bool running = false;
+  void setDuration(double ms) {
+    duration = Duration(milliseconds: ms.toInt());
+  }
+
   void start() {
     running = true;
   }

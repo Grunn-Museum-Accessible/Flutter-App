@@ -2,14 +2,11 @@ import 'dart:math' as Math;
 
 import 'package:app/helpers/ble.dart';
 import 'package:app/helpers/globals.dart';
-import 'package:app/helpers/vibration.dart';
 import 'package:app/libs/positioning/positioning.dart';
 import 'package:app/libs/surround_sound/src/sound_controller.dart';
 import 'package:flutter/material.dart' hide Route;
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-
-import 'package:flutter/services.dart';
 
 class PositioningScreen extends StatefulWidget {
   final BluetoothDevice device;
@@ -216,11 +213,14 @@ class PositioningScreenState extends State<PositioningScreen> {
   }
 
   void setAngle(num angle, num compassAngle) {
-    double finalAngle = (compassAngle - angle + 180) % 360 - 180;
+    double finalAngle = (compassAngle - angle + 90) % 360 - 180;
     _controller.setAngle(finalAngle);
 
-    int errorMargin = 40;
-    if (((finalAngle + 90) - 180).abs() > errorMargin / 2) {
+    double duration = 600 + 1000 * ((180 - finalAngle.abs()) / 180);
+    int errorMargin = 1500;
+
+    if (duration < errorMargin) {
+      vibration.setDuration(duration);
       vibration.start();
     } else {
       vibration.stop();
