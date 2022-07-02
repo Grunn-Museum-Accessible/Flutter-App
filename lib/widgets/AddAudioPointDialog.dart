@@ -4,6 +4,7 @@ import 'package:app/widgets/spacer.dart';
 import 'package:filesystem_picker/filesystem_picker.dart';
 import 'package:flutter/material.dart' hide Spacer, Route;
 import 'package:flutter/services.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class AddAudioPointDialog extends StatefulWidget {
   final void Function(String? audioFile, num? range) addRoute;
@@ -53,19 +54,21 @@ class _AddAudioPointDialogState extends State<AddAudioPointDialog> {
               ),
               ElevatedButton(
                 onPressed: () async {
-                  String newImage = await FilesystemPicker.open(
-                        title: 'Selecteer afbeelding ',
-                        context: context,
-                        rootDirectory: Directory('storage/emulated/0'),
-                        fsType: FilesystemType.file,
-                        allowedExtensions: ['.wav', '.mp3'],
-                        fileTileSelectMode: FileTileSelectMode.wholeTile,
-                      ) ??
-                      '';
-                  if (newImage != '') {
-                    setState(() {
-                      soundFilePath = newImage;
-                    });
+                  if (await Permission.storage.request().isGranted) {
+                    String newImage = await FilesystemPicker.open(
+                          title: 'Selecteer afbeelding ',
+                          context: context,
+                          rootDirectory: Directory('storage/emulated/0'),
+                          fsType: FilesystemType.file,
+                          allowedExtensions: ['.wav', '.mp3'],
+                          fileTileSelectMode: FileTileSelectMode.wholeTile,
+                        ) ??
+                        '';
+                    if (newImage != '') {
+                      setState(() {
+                        soundFilePath = newImage;
+                      });
+                    }
                   }
                 },
                 child: Text(

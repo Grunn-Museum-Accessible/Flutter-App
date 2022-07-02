@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
@@ -241,6 +242,20 @@ class EditRouteState extends State<EditRoute> {
             res.statusCode.toString() +
             ' | ' +
             res.body.toString());
+
+        // show toast
+        String errorMessage = jsonDecode(res.body)['message'];
+        String usermsg = '';
+        switch (errorMessage) {
+          case 'could not find route':
+            usermsg = 'De route was niet gevonden. probeer later opnieuw';
+            break;
+          case 'Nothing to update':
+            usermsg = 'De waardes zijn geupdate';
+            break;
+          default:
+            usermsg = 'er is iets fout gegaan. probeer later opnieuw';
+        }
       }
     });
   }

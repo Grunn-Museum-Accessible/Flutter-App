@@ -9,13 +9,14 @@ import 'package:filesystem_picker/filesystem_picker.dart';
 import 'package:flutter/material.dart' hide Theme, Route, Spacer;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
+import 'package:permission_handler/permission_handler.dart';
 
 // ignore: must_be_immutable
 class NewRoute extends StatefulWidget {
   Route route = Route(
-    'Titel',
-    'Omschrijving',
-    'https://via.placeholder.com/480x270?text=Pas+thumbnail+aan',
+    'JR Chronicles',
+    'Ontdek de iconische projecten van de internationale bekende franse kunstenaar JR',
+    'https://www.groningermuseum.nl/media/2/Tentoonstellingen/2021/JR/_1200x670_crop_center-center_95_none/JR.-GIANTS-Kikito-and-the-Border-Patrol-Tecate-Mexico-U.S.A.-2017.jpg',
     <Line>[],
   );
 
@@ -65,7 +66,8 @@ class NewRouteState extends State<NewRoute> {
         visible: widget.route.routePartNotifier.value.isNotEmpty &&
             name.length > 1 &&
             desc.length > 1 &&
-            image != '',
+            true,
+        // image != '',
         child: FloatingActionButton.extended(
           // color: Colors.blue,
           onPressed: () {
@@ -79,19 +81,22 @@ class NewRouteState extends State<NewRoute> {
         children: [
           GestureDetector(
             onTap: () async {
-              String newImage = await FilesystemPicker.open(
-                    title: 'Selecteer afbeelding ',
-                    context: context,
-                    rootDirectory: Directory('storage/emulated/0'),
-                    fsType: FilesystemType.file,
-                    allowedExtensions: ['.jpg', '.jpeg', '.gif', '.png'],
-                    fileTileSelectMode: FileTileSelectMode.wholeTile,
-                  ) ??
-                  '';
-              if (newImage != '') {
-                setState(() {
-                  image = newImage;
-                });
+              if (await Permission.storage.request().isGranted) {
+                String newImage = await FilesystemPicker.open(
+                      title: 'Selecteer afbeelding ',
+                      context: context,
+                      rootDirectory: Directory('storage/emulated/0'),
+                      fsType: FilesystemType.file,
+                      allowedExtensions: ['.jpg', '.jpeg', '.gif', '.png'],
+                      fileTileSelectMode: FileTileSelectMode.wholeTile,
+                    ) ??
+                    '';
+
+                if (newImage != '') {
+                  setState(() {
+                    image = newImage;
+                  });
+                }
               }
             },
             child: Stack(
@@ -278,6 +283,7 @@ class NewRouteState extends State<NewRoute> {
     });
 
     req.send().then((http.StreamedResponse resS) async {
+      //TODO: show errors and completion
       var res = await http.Response.fromStream(resS);
       if (res.statusCode == 200) {
         setState(() {
