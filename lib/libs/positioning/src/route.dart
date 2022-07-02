@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:app/libs/positioning/positioning.dart';
 
 class Route {
@@ -8,19 +9,17 @@ class Route {
   late List<Line> parts;
   Point? tempLast;
 
-  Route({
-    required this.name,
-    required this.thumbnail,
-    required this.parts,
-    this.description
-  });
+  Route(
+      {required this.name,
+      required this.thumbnail,
+      required this.parts,
+      this.description});
 
-  Route.fromList({
-    required String name,
-    required String thumbnail,
-    required List<dynamic> list,
-    String? description
-  }) {
+  Route.fromList(
+      {required String name,
+      required String thumbnail,
+      required List<dynamic> list,
+      String? description}) {
     this.name = name;
     this.thumbnail = thumbnail;
     if (description != null) {
@@ -31,24 +30,32 @@ class Route {
     for (int i = 0; i < list.length - 1; i++) {
       parts.add(Line(
         Point.fromString(jsonEncode(list[i]['start'])),
-        Point.fromString(jsonEncode(list[i]['end']))
+        Point.fromString(jsonEncode(list[i]['end'])),
       ));
     }
   }
 
-  Route.fromString(String source) {
-    var parsed = jsonDecode(source);
-    name = parsed['name'];
-    description = parsed['description'];
-    thumbnail = parsed['image'];
+  static Route? fromString(String source) {
+    try {
+      var parsed = jsonDecode(source);
+      String name = parsed['name'];
+      String description = parsed['description'];
+      String thumbnail = parsed['image'];
 
-    parts = [];
-    parsed['parts'].forEach((element) {
-      parts.add(Line(
-        Point.fromString(jsonEncode(element['start'])),
-        Point.fromString(jsonEncode(element['end']))
-      ));
-    });
+      List<Line> parts = [];
+      parsed['parts'].forEach((element) {
+        parts.add(Line(Point.fromString(jsonEncode(element['start'])),
+            Point.fromString(jsonEncode(element['end']))));
+      });
+      return Route(
+        name: name,
+        description: description,
+        thumbnail: thumbnail,
+        parts: parts,
+      );
+    } catch (e) {
+      log('one or more fields are invalid: ' + e.toString());
+    }
   }
 
   String toJSON() {
