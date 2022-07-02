@@ -1,23 +1,37 @@
+import 'package:app/helpers/globals.dart';
+import 'package:app/helpers/restApi.dart';
 import 'package:app/libs/positioning/positioning.dart';
 import 'package:app/pages/nfc.dart';
 import 'package:flutter/material.dart' hide Route;
 import 'package:flutter_svg/flutter_svg.dart';
 
-Route testRoute = Route.fromList(
-  name: 'JR: Chronicles',
-  description: 'Ontdek de iconische projecten van de internationale bekende franse kunstenaar JR',
-  thumbnail: 'https://www.groningermuseum.nl/media/2/Tentoonstellingen/2021/JR/_1200x670_crop_center-center_95_none/JR.-GIANTS-Kikito-and-the-Border-Patrol-Tecate-Mexico-U.S.A.-2017.jpg',
-  list: [
-    [20, 200],
-    [100, 400],
-    [300, 600],
-    [700, 400],
-    [750, 300],
-    [900, 200],
-    [950, 200],
-    [1100, 500]
-  ]
-);
+/**
+ * Coords
+ * [60, 75],
+ * [60, 185],
+ * [135, 315],
+ * [300, 315],
+ * [300, 460],
+ * [190, 600],
+ * [60, 600]
+ */
+
+// Point audioOne = Point(60, 185, soundRange: 30, soundFile: '/static/audio/jr-1.mp3');
+// Point audioTwo = Point(300, 460, soundRange: 30, soundFile: '/static/audio/jr-2.mp3');
+
+// Route testRoute = Route(
+//   name: 'JR Chronicles',
+//   description: 'Ontdek de iconische projecten van de internationale bekende franse kunstenaar JR',
+//   thumbnail: 'https://www.groningermuseum.nl/media/2/Tentoonstellingen/2021/JR/_1200x670_crop_center-center_95_none/JR.-GIANTS-Kikito-and-the-Border-Patrol-Tecate-Mexico-U.S.A.-2017.jpg',
+//   parts: [
+//     Line(Point(60, 75), audioOne, 50),
+//     Line(audioOne, Point(135, 315), 30),
+//     Line(Point(135, 315), Point(300, 315), 30),
+//     Line(Point(300, 315), audioTwo, 40),
+//     Line(audioTwo, Point(190, 600), 40),
+//     Line(Point(190, 600), Point(60, 600), 30)
+//   ]
+// );
 
 class HomeScreen extends StatelessWidget {
   @override
@@ -25,37 +39,31 @@ class HomeScreen extends StatelessWidget {
     Size size = MediaQuery.of(context).size;
     ThemeData themeData = Theme.of(context);
 
-    return Scaffold(
-      body: Column(
-        children: [
-          Header(size: size),
-          Padding(
-            padding: EdgeInsets.only(top: 30.0, bottom: 10.0),
-            child: Column(
-              children: [
-                Text(
-                  'Huidige Routes',
-                  style: themeData.textTheme.headline1,
-                  textAlign: TextAlign.center,
+    return FutureBuilder<List<Route>>(
+      builder: (context, snapshot) {
+        return Scaffold(
+          body: Column(
+            children: [
+              Header(size: size),
+              Padding(
+                padding: EdgeInsets.only(top: 30.0, bottom: 10.0),
+                child: Column(
+                  children: [
+                    Text(
+                      'Huidige Routes',
+                      style: themeData.textTheme.headline1,
+                      textAlign: TextAlign.center,
+                    )
+                  ]
                 )
-              ]
-            )
-          ),
-          Routes([
-            testRoute,
-            testRoute,
-            testRoute,
-            testRoute,
-            testRoute,
-            testRoute,
-            testRoute,
-            testRoute,
-            testRoute,
-            testRoute,
-            testRoute
-          ])
-        ]
-      )
+              ),
+              // Routes([testRoute])
+              Routes(snapshot.data ?? [])
+            ]
+          )
+        );
+      },
+      future: restAPI.getAll()
     );
   }
 }
@@ -80,7 +88,7 @@ class Routes extends StatelessWidget {
             minVerticalPadding: 25,
             leading: ClipRRect(
               borderRadius: BorderRadius.all(Radius.circular(5)),
-              child: Image.network(routes[index].thumbnail)
+              child: Image.network(RestClient.baseUrl + routes[index].thumbnail)
             ),
             title: Text(
               routes[index].name, style: themeData.textTheme.headline6),

@@ -2,6 +2,7 @@
 
 import 'dart:developer';
 import 'dart:math' hide log;
+import 'package:app/helpers/globals.dart';
 import 'package:flutter/material.dart' hide Route;
 
 import './anchor.dart';
@@ -12,7 +13,7 @@ import './route.dart';
 import 'package:p5/p5.dart';
 
 class PositioningVisualiser extends StatefulWidget {
-  final void Function(num distance) checkDistance;
+  final void Function(num distance, num maxDist) checkDistance;
   final List<Anchor> Function() getAnchorInfo;
   final void Function(num angle) setAngle;
   late final void Function(String? audioFile, num? range) addPoint;
@@ -49,7 +50,7 @@ class _PositioningVisualiserState extends State<PositioningVisualiser>
       widget.setAngle,
       widget.maxOffline,
     );
-    widget.addPoint = sketch.addPoint;
+
     // Need an animator to call the draw() method in the sketch continuously,
     // otherwise it will be called only when touch events are detected.
     animator = PAnimator(this);
@@ -78,7 +79,7 @@ class _PositioningVisualiserState extends State<PositioningVisualiser>
 }
 
 class MySketch extends PPainter {
-  void Function(num distance) checkDistance;
+  void Function(num distance, num maxDist) checkDistance;
   List<Anchor> Function() getAnchors;
   void Function(num angle) setAngle;
   Route route;
@@ -107,7 +108,7 @@ class MySketch extends PPainter {
     if (intersection == null) return;
     // if there is a iintersection we draw it and store it in previous loc
     if (previousLoc != intersection) {
-      log(intersection.toJson());
+      log(intersection.toJSON());
     }
     previousLoc = intersection;
     drawPoint(intersection, Colors.cyan, 20);
@@ -119,21 +120,37 @@ class MySketch extends PPainter {
     Point closestPoint = getClosestPointOnRoute(intersection, route);
     num angleOfLine = Line(intersection, closestPoint).angle;
     num distanceToClosestPoint = Line(intersection, closestPoint).length;
-    checkDistance(distanceToClosestPoint);
+  
+    Line closestPart = getClosestPartOfRoute(closestPoint, route);
+    checkDistance(distanceToClosestPoint, closestPart.maxDistance);
 
     // make variable to store the point to navigate to
     Point nextWaypoint = closestPoint;
 
-    if (distanceToClosestPoint >
-        getClosestPartOfRoute(closestPoint, route).maxDistance) {
+    // get the closest part of the route to the current possition
+    Line closestLine = getClosestPartOfRoute(intersection, route);
+
+    // Play audio file when within range
+    Point start = closestLine.start;
+    num distanceToStart = Line(intersection, start).length;
+    if (start.hasSound && distanceToStart < start.soundRange!) {
+      audioPlayer.play(start.soundURL);
+    } else {
+      Point end = closestLine.end;
+      num distanceToEnd = Line(intersection, end).length;
+      if (end.hasSound && distanceToEnd < end.soundRange!) {
+        audioPlayer.play(end.soundURL);
+      } else {
+        audioPlayer.stop();
+      }
+    }
+
+    if (distanceToClosestPoint > closestPart.maxDistance) {
       // if the distance from the line is bigger than the configured distance
       // we navigate directly to it
       angleOfLine += 90;
     } else {
       // if it is smaller than we navigate to the next point on the line
-
-      // get the closest part of the route to the current possition
-      Line closestLine = getClosestPartOfRoute(intersection, route);
 
       // if we are close enoguh to the end of the line we
       // navigate to the next lines end
@@ -188,23 +205,6 @@ class MySketch extends PPainter {
         .map((e) => getIntersections(e))
         .forEach((element) => intersections.addAll(element));
     return intersections;
-  }
-
-  /// add the current point to the line
-  void addPoint(String? soundFile, num? range) {
-    List<Anchor> anchors = getAnchors();
-    Point? intersection = mostLikelyPosistion(getIntersections(anchors));
-    if (intersection != null) {
-      // log(soundFile ?? '');
-      // log((range ?? 0).toString());
-
-      if (soundFile != null) {
-        intersection.soundFile = soundFile;
-        intersection.soundRange = range;
-      }
-
-      route.addPart(intersection);
-    }
   }
 
   void drawLine(Point start, Point end) {

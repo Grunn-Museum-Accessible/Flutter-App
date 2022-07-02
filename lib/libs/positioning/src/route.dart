@@ -1,6 +1,4 @@
 import 'dart:convert';
-
-import 'package:app/helpers/globals.dart';
 import 'package:app/libs/positioning/positioning.dart';
 
 class Route {
@@ -20,7 +18,7 @@ class Route {
   Route.fromList({
     required String name,
     required String thumbnail,
-    required List<List<num>> list,
+    required List<dynamic> list,
     String? description
   }) {
     this.name = name;
@@ -31,12 +29,10 @@ class Route {
 
     parts = [];
     for (int i = 0; i < list.length - 1; i++) {
-      parts.add(
-        Line(
-          Point(list[i][0], list[i][1]),
-          Point(list[i + 1][0], list[i + 1][1])
-        )
-      );
+      parts.add(Line(
+        Point.fromString(jsonEncode(list[i]['start'])),
+        Point.fromString(jsonEncode(list[i]['end']))
+      ));
     }
   }
 
@@ -44,7 +40,7 @@ class Route {
     var parsed = jsonDecode(source);
     name = parsed['name'];
     description = parsed['description'];
-    thumbnail = parsed['thumbnail'];
+    thumbnail = parsed['image'];
 
     parts = [];
     parsed['parts'].forEach((element) {
@@ -56,7 +52,7 @@ class Route {
   }
 
   String toJSON() {
-    String json = '{"name": "$name", "thumbnail": "$thumbnail", ';
+    String json = '{"name": "$name", "image": "$thumbnail", ';
     if (description != null) {
       json += '"description": "$description", ';
     }
@@ -84,27 +80,6 @@ class Route {
     }
 
     return parts[parts.indexOf(current) + 1];
-  }
-
-  void removePartAt(int part) {
-    if (part == 0) {
-      parts.removeAt(part);
-    } else if (length == part) {
-      parts.removeLast();
-    } else if (length > part) {
-      parts.removeAt(part);
-      parts[part - 1].end = parts[part].start;
-    }
-  }
-
-  void addPart(Point point) {
-    if (length > 0 || tempLast != null) {
-      parts.add(Line(end, point));
-    } else {
-      tempLast = point;
-    }
-
-    restAPI.updateRoute(this);
   }
 
   operator ==(Object other) {

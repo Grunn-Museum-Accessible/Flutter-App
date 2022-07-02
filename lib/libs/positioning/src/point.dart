@@ -1,14 +1,15 @@
 import 'dart:convert' show jsonDecode;
 import 'dart:math';
 
+import 'package:app/helpers/restApi.dart';
 import 'package:flutter/material.dart';
 
 class Point {
   late num x;
   late num y;
 
-  late num? soundRange;
-  late String? soundFile;
+  num? soundRange;
+  String? soundFile;
 
   Point(
     this.x,
@@ -16,6 +17,7 @@ class Point {
     this.soundFile,
     this.soundRange,
   });
+
   Point.fromString(String json) {
     var parsedJson = jsonDecode(json);
 
@@ -24,19 +26,20 @@ class Point {
       soundRange = parsedJson['soundRange'];
     }
 
-    x = num.parse(parsedJson['x']);
-    y = num.parse(parsedJson['y']);
+    x = num.parse(parsedJson['x'].toString());
+    y = num.parse(parsedJson['y'].toString());
   }
 
   get offset => Offset(x.toDouble(), y.toDouble());
   get hasSound => soundRange != null;
+  get soundURL => hasSound ? RestClient.baseUrl + soundFile! : null;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is Point && (other.x == x && other.y == y);
 
-  String toJson() {
+  String toJSON() {
     if (soundFile == null) {
       return '{"x":"$x", "y":"$y"}';
     } else {
