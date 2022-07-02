@@ -6,6 +6,8 @@ import 'package:app/helpers/globals.dart';
 import 'package:app/helpers/restApi.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart' hide Route;
+import 'package:flutter_compass/flutter_compass.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import './anchor.dart';
 import './line.dart';
@@ -17,20 +19,20 @@ import 'package:p5/p5.dart';
 class PositioningVisualiser extends StatefulWidget {
   final void Function(num distance, num maxDist) checkDistance;
   final List<Anchor> Function() getAnchorInfo;
-  final void Function(num angle) setAngle;
+  final void Function(num angle, num compassAngle) setAngle;
   late final void Function(String? audioFile, num? range) addPoint;
 
   final Route route;
   final num maxOffline;
 
-  PositioningVisualiser(
-      {Key? key,
-      required this.checkDistance,
-      required this.getAnchorInfo,
-      required this.route,
-      required this.setAngle,
-      required this.maxOffline})
-      : super(key: key);
+  PositioningVisualiser({
+    Key? key,
+    required this.checkDistance,
+    required this.getAnchorInfo,
+    required this.route,
+    required this.setAngle,
+    required this.maxOffline
+  }) : super(key: key);
 
   @override
   State<PositioningVisualiser> createState() => _PositioningVisualiserState();
@@ -38,6 +40,11 @@ class PositioningVisualiser extends StatefulWidget {
 
 class _PositioningVisualiserState extends State<PositioningVisualiser>
     with SingleTickerProviderStateMixin {
+  
+  double compassAngle = 0.0;
+  double compassX = 0.0;
+  double compassY = 0.0;
+
   late MySketch sketch;
   late PAnimator animator;
 
@@ -48,8 +55,10 @@ class _PositioningVisualiserState extends State<PositioningVisualiser>
     sketch = MySketch(
       widget.checkDistance,
       widget.getAnchorInfo,
+      getCompassAngle,
       widget.route,
       widget.setAngle,
+      setCompassPosition,
       widget.maxOffline,
     );
 
@@ -75,7 +84,72 @@ class _PositioningVisualiserState extends State<PositioningVisualiser>
     return Container(
       height: MediaQuery.of(context).size.height - 181,
       width: MediaQuery.of(context).size.width,
-      child: PWidget(sketch),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          PWidget(sketch),
+          Positioned(
+            top: compassY - 20.0,
+            left: compassX - 20.0,
+            child: Compass(setCompassAngle),
+          )
+        ]
+      ),
+    );
+  }
+
+  double getCompassAngle() {
+    return compassAngle;
+  }
+
+  void setCompassAngle(double angle) {
+    compassAngle = angle;
+  }
+
+  void setCompassPosition(Point point) {
+    compassX = point.x.toDouble();
+    compassY = point.y.toDouble();
+  }
+}
+
+class Compass extends StatefulWidget {
+  final void Function(double angle) setCompassAngle;
+
+  Compass(this.setCompassAngle);
+
+  @override
+  CompassState createState() => CompassState();
+}
+
+class CompassState extends State<Compass> {
+  double angle = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    FlutterCompass.events?.listen(_onData);
+  }
+
+  @override
+  void setState(void Function() fn) {
+    if (!mounted) return;
+    super.setState(fn);
+  }
+
+  void _onData(CompassEvent event) => setState(() {
+    if (event.heading != null) {
+      angle = event.heading!; 
+      widget.setCompassAngle(angle);
+    }
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedRotation(
+      curve: Curves.easeInOut,
+      duration: Duration(milliseconds: 300),
+      turns: angle / 360,
+      child: SvgPicture.asset('assets/images/compass.svg', width: 40.0, color: Colors.cyan),
     );
   }
 }
@@ -83,7 +157,9 @@ class _PositioningVisualiserState extends State<PositioningVisualiser>
 class MySketch extends PPainter {
   void Function(num distance, num maxDist) checkDistance;
   List<Anchor> Function() getAnchors;
-  void Function(num angle) setAngle;
+  double Function() getCompassAngle;
+  void Function(num angle, num compassAngle) setAngle;
+  void Function(Point point) setCompassPosition;
   Route route;
   Point? previousLoc;
 
@@ -92,8 +168,10 @@ class MySketch extends PPainter {
   MySketch(
     this.checkDistance,
     this.getAnchors,
+    this.getCompassAngle,
     this.route,
     this.setAngle,
+    this.setCompassPosition,
     this.maxOffline,
   );
 
@@ -113,7 +191,7 @@ class MySketch extends PPainter {
       log(intersection.toJSON());
     }
     previousLoc = intersection;
-    drawPoint(intersection, Colors.cyan, 20);
+    setCompassPosition(intersection);
 
     // if the length of the route is 0 we dont need to do anything from this point
     if (route.length <= 0) return;
@@ -168,47 +246,22 @@ class MySketch extends PPainter {
       }
     }
 
-    if (distanceToClosestPoint > closestPart.maxDistance) {
-      // if the distance from the line is bigger than the configured distance
-      // we navigate directly to it
-      angleOfLine += 90;
+    if (Line(closestPoint, closestLine.end).length < 30) {
+      Line nextLine = route.getNextPart(closestLine) ?? closestLine;
+      nextWaypoint = nextLine.end;
+
+      angleOfLine = Line(intersection, nextLine.end).angle;
     } else {
-      // if it is smaller than we navigate to the next point on the line
-
-      // if we are close enoguh to the end of the line we
-      // navigate to the next lines end
-      if (Line(closestPoint, closestLine.end).length < 30) {
-        // get the next line to get its end. if there are no parts left
-        // we take the current line
-        Line nextLine = route.getNextPart(closestLine) ?? closestLine;
-        nextWaypoint = nextLine.end;
-
-        // calculate the angle to the next waypoint
-        angleOfLine = Line(
-          intersection,
-          nextLine.end,
-        ).angle;
-      } else {
-        // else we navigate to the end of the closest line
-        nextWaypoint = closestLine.end;
-
-        angleOfLine = Line(
-          intersection,
-          closestLine.end,
-        ).angle;
-      }
-      angleOfLine += 90;
+      nextWaypoint = closestLine.end;
+      angleOfLine = Line(intersection, closestLine.end).angle;
     }
 
-    // set the angle of the arrow
-    setAngle(angleOfLine);
+    setAngle(angleOfLine, getCompassAngle());
 
-    // draw line to next waypoint
     drawLine(intersection, nextWaypoint);
     drawPoints([nextWaypoint]);
   }
 
-// res = [(a, b) for idx, a in enumerate(test_list) for b in test_list[idx + 1:]]
   List<List<Anchor>> getAnchorPairs(List<Anchor> items) {
     List<List<Anchor>> res = [];
     for (int i = 0; i < items.length; i++) {

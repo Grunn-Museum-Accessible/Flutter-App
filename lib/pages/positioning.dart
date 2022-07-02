@@ -1,11 +1,15 @@
 import 'dart:math' as Math;
 
 import 'package:app/helpers/ble.dart';
+import 'package:app/helpers/globals.dart';
+import 'package:app/helpers/vibration.dart';
 import 'package:app/libs/positioning/positioning.dart';
 import 'package:app/libs/surround_sound/src/sound_controller.dart';
 import 'package:flutter/material.dart' hide Route;
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
+import 'package:flutter/services.dart';
 
 class PositioningScreen extends StatefulWidget {
   final BluetoothDevice device;
@@ -35,12 +39,13 @@ class PositioningScreenState extends State<PositioningScreen> {
     '667f1c78-be2e-11ec-9d64-0242ac120005' // anchor 3
   ];
 
-  num arrowAngle = 0;
-
   @override
   void dispose() async {
     _controller.dispose();
-    // audioPlayer.dispose();
+
+    audioPlayer.stop();
+    vibration.stop();
+
     super.dispose();
     await bleDevice.deconstruct();
   }
@@ -183,19 +188,6 @@ class PositioningScreenState extends State<PositioningScreen> {
                               return positionVisualizer;
                             }),
                           ),
-                          Positioned(
-                            top: 10,
-                            right: 20,
-                            child: AnimatedRotation(
-                              curve: Curves.easeInOut,
-                              duration: Duration(milliseconds: 300),
-                              turns: arrowAngle.toDouble() / 360,
-                              child: Image.asset(
-                                'assets/images/arrow.png',
-                                height: 100,
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                     ],
@@ -223,9 +215,16 @@ class PositioningScreenState extends State<PositioningScreen> {
     return deg * Math.pi / 180;
   }
 
-  void setAngle(num angle) {
-    _controller.setAngle(angle);
-    arrowAngle = angle;
+  void setAngle(num angle, num compassAngle) {
+    double finalAngle = (compassAngle - angle + 180) % 360 - 180;
+    _controller.setAngle(finalAngle);
+
+    int errorMargin = 40;
+    if (((finalAngle + 90) - 180).abs() > errorMargin / 2) {
+      vibration.start();
+    } else {
+      vibration.stop();
+    }
   }
 
   List<Anchor> getAnchorInfo() {

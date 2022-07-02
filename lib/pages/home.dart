@@ -16,22 +16,22 @@ import 'package:flutter_svg/flutter_svg.dart';
  * [60, 600]
  */
 
-// Point audioOne = Point(60, 185, soundRange: 30, soundFile: '/static/audio/jr-1.mp3');
-// Point audioTwo = Point(300, 460, soundRange: 30, soundFile: '/static/audio/jr-2.mp3');
+Point audioOne = Point(60, 185, soundRange: 30, soundFile: '/static/audio/jr-1.mp3');
+Point audioTwo = Point(300, 460, soundRange: 30, soundFile: '/static/audio/jr-2.mp3');
 
-// Route testRoute = Route(
-// name: 'JR Chronicles',
-// description: 'Ontdek de iconische projecten van de internationale bekende franse kunstenaar JR',
-// thumbnail: 'https://www.groningermuseum.nl/media/2/Tentoonstellingen/2021/JR/_1200x670_crop_center-center_95_none/JR.-GIANTS-Kikito-and-the-Border-Patrol-Tecate-Mexico-U.S.A.-2017.jpg',
-//   parts: [
-//     Line(Point(60, 75), audioOne, 50),
-//     Line(audioOne, Point(135, 315), 30),
-//     Line(Point(135, 315), Point(300, 315), 30),
-//     Line(Point(300, 315), audioTwo, 40),
-//     Line(audioTwo, Point(190, 600), 40),
-//     Line(Point(190, 600), Point(60, 600), 30)
-//   ]
-// );
+Route testRoute = Route(
+name: 'JR Chronicles',
+description: 'Ontdek de iconische projecten van de internationale bekende franse kunstenaar JR',
+thumbnail: 'https://www.groningermuseum.nl/media/2/Tentoonstellingen/2021/JR/_1200x670_crop_center-center_95_none/JR.-GIANTS-Kikito-and-the-Border-Patrol-Tecate-Mexico-U.S.A.-2017.jpg',
+  parts: [
+    Line(Point(60, 75), audioOne, 50),
+    Line(audioOne, Point(135, 315), 30),
+    Line(Point(135, 315), Point(300, 315), 30),
+    Line(Point(300, 315), audioTwo, 40),
+    Line(audioTwo, Point(190, 600), 40),
+    Line(Point(190, 600), Point(60, 600), 30)
+  ]
+);
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -58,10 +58,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     textAlign: TextAlign.center,
                   )
                 ])),
-            // Routes([testRoute])
-            Routes(snapshot.data ?? [], () async {
+            Routes([testRoute], () async {
               setState(() {});
             })
+            // Routes(snapshot.data ?? [], () async {
+            //   setState(() {});
+            // })
           ]));
         },
         future: restAPI.getAll());

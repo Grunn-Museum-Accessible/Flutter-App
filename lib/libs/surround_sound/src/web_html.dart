@@ -31,7 +31,7 @@ String html = '''<!DOCTYPE html>
 
                     // setup panner
                     panner = audioCtx.createPanner();
-                    //panner.panningModel = 'HRTF';
+                    panner.panningModel = 'HRTF';
                     panner.distanceModel = "inverse";
                     panner.refDistance = 1;
                     panner.maxDistance = 10000;
