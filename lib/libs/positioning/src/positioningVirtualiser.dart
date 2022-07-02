@@ -3,6 +3,8 @@
 import 'dart:developer';
 import 'dart:math' hide log;
 import 'package:app/helpers/globals.dart';
+import 'package:app/helpers/restApi.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart' hide Route;
 
 import './anchor.dart';
@@ -120,7 +122,7 @@ class MySketch extends PPainter {
     Point closestPoint = getClosestPointOnRoute(intersection, route);
     num angleOfLine = Line(intersection, closestPoint).angle;
     num distanceToClosestPoint = Line(intersection, closestPoint).length;
-  
+
     Line closestPart = getClosestPartOfRoute(closestPoint, route);
     checkDistance(distanceToClosestPoint, closestPart.maxDistance);
 
@@ -134,12 +136,24 @@ class MySketch extends PPainter {
     Point start = closestLine.start;
     num distanceToStart = Line(intersection, start).length;
     if (start.hasSound && distanceToStart < start.soundRange!) {
-      audioPlayer.play(start.soundURL);
+      if (audioPlayer.state != PlayerState.playing) {
+        try {
+          audioPlayer.play(UrlSource(RestClient.baseUrl + start.soundFile!));
+        } catch (_) {
+          log('[LOG:AUDIO] the supplied url was invallid (' +
+              RestClient.baseUrl +
+              start.soundFile! +
+              ')');
+        }
+      }
     } else {
       Point end = closestLine.end;
       num distanceToEnd = Line(intersection, end).length;
+
       if (end.hasSound && distanceToEnd < end.soundRange!) {
-        audioPlayer.play(end.soundURL);
+        if (start.hasSound && distanceToStart < start.soundRange!) {
+          audioPlayer.play(UrlSource(RestClient.baseUrl + end.soundFile!));
+        }
       } else {
         audioPlayer.stop();
       }

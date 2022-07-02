@@ -1,7 +1,6 @@
 import 'dart:math' as Math;
 
 import 'package:app/helpers/ble.dart';
-import 'package:app/helpers/globals.dart';
 import 'package:app/libs/positioning/positioning.dart';
 import 'package:app/libs/surround_sound/src/sound_controller.dart';
 import 'package:flutter/material.dart' hide Route;
@@ -33,7 +32,7 @@ class PositioningScreenState extends State<PositioningScreen> {
   List<String> guids = [
     '667f1c78-be2e-11ec-9d64-0242ac120002', // anchor 1
     '667f1c78-be2e-11ec-9d64-0242ac120003', // anchor 2
-    '667f1c78-be2e-11ec-9d64-0242ac120005'  // anchor 3
+    '667f1c78-be2e-11ec-9d64-0242ac120005' // anchor 3
   ];
 
   num arrowAngle = 0;
@@ -41,7 +40,7 @@ class PositioningScreenState extends State<PositioningScreen> {
   @override
   void dispose() async {
     _controller.dispose();
-    audioPlayer.dispose();
+    // audioPlayer.dispose();
     super.dispose();
     await bleDevice.deconstruct();
   }
@@ -158,15 +157,18 @@ class PositioningScreenState extends State<PositioningScreen> {
                           children: [
                             Text(
                               'Distance of anchor 1: ' + anchor1[2].toString(),
-                              style: TextStyle(fontSize: 20, color: Colors.white),
+                              style:
+                                  TextStyle(fontSize: 20, color: Colors.white),
                             ),
                             Text(
                               'Distance of anchor 2: ' + anchor2[2].toString(),
-                              style: TextStyle(fontSize: 20, color: Colors.white),
+                              style:
+                                  TextStyle(fontSize: 20, color: Colors.white),
                             ),
                             Text(
                               'Distance of anchor 3: ' + anchor3[2].toString(),
-                              style: TextStyle(fontSize: 20, color: Colors.white),
+                              style:
+                                  TextStyle(fontSize: 20, color: Colors.white),
                             ),
                           ],
                         ),
