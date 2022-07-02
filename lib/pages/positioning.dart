@@ -36,12 +36,10 @@ class PositioningScreenState extends State<PositioningScreen> {
     '667f1c78-be2e-11ec-9d64-0242ac120005'  // anchor 3
   ];
 
-  num arrowAngle = 0;
-
   @override
   void dispose() async {
     _controller.dispose();
-    audioPlayer.dispose();
+    audioPlayer.stop();
     super.dispose();
     await bleDevice.deconstruct();
   }
@@ -181,19 +179,6 @@ class PositioningScreenState extends State<PositioningScreen> {
                               return positionVisualizer;
                             }),
                           ),
-                          Positioned(
-                            top: 10,
-                            right: 20,
-                            child: AnimatedRotation(
-                              curve: Curves.easeInOut,
-                              duration: Duration(milliseconds: 300),
-                              turns: arrowAngle.toDouble() / 360,
-                              child: Image.asset(
-                                'assets/images/arrow.png',
-                                height: 100,
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                     ],
@@ -221,9 +206,10 @@ class PositioningScreenState extends State<PositioningScreen> {
     return deg * Math.pi / 180;
   }
 
-  void setAngle(num angle) {
-    _controller.setAngle(angle);
-    arrowAngle = angle;
+  void setAngle(num angle, num compassAngle) {
+    _controller.setAngle(
+      (compassAngle - angle + 180) % 360 - 180
+    );
   }
 
   List<Anchor> getAnchorInfo() {

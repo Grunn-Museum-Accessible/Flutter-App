@@ -15,6 +15,7 @@ dependencies:
   flutter_blue: 
     git:
       url: https://github.com/espresso3389/flutter_blue.git
+  flutter_compass: ^0.7.0
   flutter_inappwebview: ^5.4.3+7
   flutter_svg: ^1.0.3
   nfc_manager: ^3.1.1

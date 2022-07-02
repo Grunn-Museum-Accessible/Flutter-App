@@ -106,6 +106,13 @@ packages:
       url: "https://github.com/espresso3389/flutter_blue.git"
     source: git
     version: "0.8.0"
+  flutter_compass:
+    dependency: "direct main"
+    description:
+      name: flutter_compass
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.7.0"
   flutter_inappwebview:
     dependency: "direct main"
     description:
