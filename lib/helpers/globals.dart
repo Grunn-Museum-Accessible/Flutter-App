@@ -12,3 +12,10 @@ final RestClient restAPI = RestClient();
 Future<String> loadAsset(String assetPath) async {
   return rootBundle.loadString(assetPath);
 }
+
+String makeValidIMageUrl(String oldUrl) {
+  if (oldUrl.startsWith('/')) {
+    return RestClient.baseUrl + oldUrl;
+  }
+  return oldUrl;
+}
