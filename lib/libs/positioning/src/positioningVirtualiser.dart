@@ -151,11 +151,20 @@ class MySketch extends PPainter {
       num distanceToEnd = Line(intersection, end).length;
 
       if (end.hasSound && distanceToEnd < end.soundRange!) {
-        if (start.hasSound && distanceToStart < start.soundRange!) {
-          audioPlayer.play(UrlSource(RestClient.baseUrl + end.soundFile!));
+        if (end.hasSound && distanceToStart < end.soundRange!) {
+          try {
+            audioPlayer.play(UrlSource(RestClient.baseUrl + end.soundFile!));
+          } catch (_) {
+            log('[LOG:AUDIO] the supplied url was invallid (' +
+                RestClient.baseUrl +
+                start.soundFile! +
+                ')');
+          }
         }
       } else {
-        audioPlayer.stop();
+        if (audioPlayer.state == PlayerState.playing) {
+          audioPlayer.stop();
+        }
       }
     }
 
