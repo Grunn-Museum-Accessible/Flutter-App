@@ -9,7 +9,7 @@ class RouteScreen extends StatefulWidget {
   final Route route;
 
   RouteScreen({Key? key, required this.device, required this.route})
-      : super(key: key);
+    : super(key: key);
 
   @override
   RouteScreenState createState() => RouteScreenState();
@@ -23,65 +23,62 @@ class RouteScreenState extends State<RouteScreen> {
     Size size = MediaQuery.of(context).size;
     ThemeData themeData = Theme.of(context);
     String description =
-        widget.route.description ?? 'No description available...';
+      widget.route.description ?? 'No description available...';
 
     return Scaffold(
-        extendBodyBehindAppBar: true,
-        appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0.0),
-        body: Stack(children: [
-          Image.network(makeValidIMageUrl(widget.route.thumbnail),
-              height: 300, fit: BoxFit.cover),
-          Header(size: size),
-          Align(
-              alignment: Alignment.center,
-              child: Column(children: [
-                SizedBox(height: 300.0),
-                Text(
-                  widget.route.name,
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontFamily: 'Eurostile',
-                      fontSize: 22),
-                ),
-                Padding(
-                    padding: EdgeInsets.all(20.0),
-                    child: Text(
-                      description,
-                      style: TextStyle(color: Colors.white, fontSize: 18),
-                    ))
-              ])),
-          Align(
-              alignment: Alignment.bottomLeft,
-              child: Padding(
-                padding: EdgeInsets.all(20.0),
-                child: TextButton.icon(
-                    label: Text(started ? 'STOP' : 'START',
-                        style: themeData.textTheme.headline2),
-                    icon: Icon(
-                      started ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                      size: 50.0,
-                      color: Colors.black,
-                    ),
-                    style: TextButton.styleFrom(backgroundColor: Colors.white),
-                    onPressed: () => setState(() {
-                          // started = !started;
-                          // if (started) {
-                          //   Navigator.push(context,
-                          //     MaterialPageRoute(builder: (context) => PositioningScreen(
-                          //       device: widget.device,
-                          //       route: widget.route
-                          //     ))
-                          //   );
-                          // }
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => PositioningScreen(
-                                      device: widget.device,
-                                      route: widget.route)));
-                        })),
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0.0),
+      body: Stack(children: [
+        Image.network(makeValidIMageUrl(widget.route.thumbnail),
+          height: 300, fit: BoxFit.cover),
+        Header(size: size),
+        Align(
+          alignment: Alignment.center,
+          child: Column(children: [
+            SizedBox(height: 300.0),
+            Text(
+              widget.route.name,
+              style: TextStyle(
+                color: Colors.white,
+                fontFamily: 'Eurostile',
+                fontSize: 22),
+            ),
+            Padding(
+              padding: EdgeInsets.all(20.0),
+              child: Text(
+                description,
+                style: TextStyle(color: Colors.white, fontSize: 18),
               ))
-        ]));
+          ])
+        ),
+        Align(
+          alignment: Alignment.bottomLeft,
+          child: Padding(
+            padding: EdgeInsets.all(20.0),
+            child: TextButton.icon(
+              label: Text(started ? 'STOP' : 'START',
+                  style: themeData.textTheme.headline2),
+              icon: Icon(
+                started ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                size: 50.0,
+                color: Colors.black,
+              ),
+              style: TextButton.styleFrom(backgroundColor: Colors.white),
+              onPressed: () => setState(() {
+                Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => 
+                    PositioningScreen(
+                      device: widget.device,
+                      route: widget.route
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+        ),
+      ]),
+    );
   }
 }
 
@@ -93,8 +90,8 @@ class Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        decoration: ShapeDecoration(
-            color: Color(0xFF9747FF), shape: CustomShape(size: size)));
+      decoration: ShapeDecoration(
+        color: Color(0xFF9747FF), shape: CustomShape(size: size)));
   }
 }
 
