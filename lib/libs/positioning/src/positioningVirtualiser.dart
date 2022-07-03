@@ -25,14 +25,14 @@ class PositioningVisualiser extends StatefulWidget {
   final Route route;
   final num maxOffline;
 
-  PositioningVisualiser({
-    Key? key,
-    required this.checkDistance,
-    required this.getAnchorInfo,
-    required this.route,
-    required this.setAngle,
-    required this.maxOffline
-  }) : super(key: key);
+  PositioningVisualiser(
+      {Key? key,
+      required this.checkDistance,
+      required this.getAnchorInfo,
+      required this.route,
+      required this.setAngle,
+      required this.maxOffline})
+      : super(key: key);
 
   @override
   State<PositioningVisualiser> createState() => _PositioningVisualiserState();
@@ -40,7 +40,6 @@ class PositioningVisualiser extends StatefulWidget {
 
 class _PositioningVisualiserState extends State<PositioningVisualiser>
     with SingleTickerProviderStateMixin {
-  
   double compassAngle = 0.0;
   double compassX = 0.0;
   double compassY = 0.0;
@@ -84,17 +83,14 @@ class _PositioningVisualiserState extends State<PositioningVisualiser>
     return Container(
       height: MediaQuery.of(context).size.height - 181,
       width: MediaQuery.of(context).size.width,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          PWidget(sketch),
-          Positioned(
-            top: compassY - 20.0,
-            left: compassX - 20.0,
-            child: Compass(setCompassAngle),
-          )
-        ]
-      ),
+      child: Stack(fit: StackFit.expand, children: [
+        PWidget(sketch),
+        Positioned(
+          top: compassY - 20.0,
+          left: compassX - 20.0,
+          child: Compass(setCompassAngle),
+        )
+      ]),
     );
   }
 
@@ -137,11 +133,11 @@ class CompassState extends State<Compass> {
   }
 
   void _onData(CompassEvent event) => setState(() {
-    if (event.heading != null) {
-      angle = event.heading!; 
-      widget.setCompassAngle(angle);
-    }
-  });
+        if (event.heading != null) {
+          angle = event.heading!;
+          widget.setCompassAngle(angle);
+        }
+      });
 
   @override
   Widget build(BuildContext context) {
@@ -149,7 +145,8 @@ class CompassState extends State<Compass> {
       curve: Curves.easeInOut,
       duration: Duration(milliseconds: 300),
       turns: angle / 360,
-      child: SvgPicture.asset('assets/images/compass.svg', width: 40.0, color: Colors.cyan),
+      child: SvgPicture.asset('assets/images/compass.svg',
+          width: 40.0, color: Colors.cyan),
     );
   }
 }
@@ -229,15 +226,13 @@ class MySketch extends PPainter {
       num distanceToEnd = Line(intersection, end).length;
 
       if (end.hasSound && distanceToEnd < end.soundRange!) {
-        if (end.hasSound && distanceToStart < end.soundRange!) {
-          try {
-            audioPlayer.play(UrlSource(RestClient.baseUrl + end.soundFile!));
-          } catch (_) {
-            log('[LOG:AUDIO] the supplied url was invallid (' +
-                RestClient.baseUrl +
-                start.soundFile! +
-                ')');
-          }
+        try {
+          audioPlayer.play(UrlSource(RestClient.baseUrl + end.soundFile!));
+        } catch (_) {
+          log('[LOG:AUDIO] the supplied url was invallid (' +
+              RestClient.baseUrl +
+              start.soundFile! +
+              ')');
         }
       } else {
         if (audioPlayer.state == PlayerState.playing) {
