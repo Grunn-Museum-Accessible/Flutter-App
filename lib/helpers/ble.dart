@@ -33,25 +33,28 @@ List<Widget> buildConnectedDevices(
   ThemeData themeData = Theme.of(context);
   List<Widget> widgets = [];
 
-  devices.forEach((d) => widgets.add(ListTile(
-      title: Text(d.device.name, style: themeData.textTheme.headline6),
-      subtitle:
+  devices.forEach((d) => widgets.add(
+    Semantics(
+      label: 'Verbind met ${d.device.name}',
+      excludeSemantics: true,
+      child: ListTile(
+        title: Text(d.device.name, style: themeData.textTheme.headline6),
+        subtitle:
           Text(d.device.id.toString(), style: themeData.textTheme.subtitle2),
-      trailing: IconButton(
-        icon: Icon(
+        trailing: Icon(
           Icons.bluetooth_searching_rounded,
           color: Color(0xFF000000),
         ),
-        onPressed: () {
-          Navigator.push(
-            context,
+        onTap: () {
+          Navigator.push(context,
             MaterialPageRoute(
               builder: (context) => RouteScreen(device: d.device, route: route),
             ),
           );
-        },
-        tooltip: 'Verbind met ${d.device.name}',
-      ))));
+        }
+      ),
+    )
+  ));
 
   return widgets;
 }

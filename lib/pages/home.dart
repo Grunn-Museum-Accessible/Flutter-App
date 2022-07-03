@@ -52,8 +52,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   children: [
                     Text(
-                      'Huidige Routes',
-                      style: themeData.textTheme.headline1,
+                      'HUIDIGE ROUTES',
+                      style: themeData.textTheme.headline3,
                       textAlign: TextAlign.center,
                     )
                   ]
@@ -98,7 +98,7 @@ class Routes extends StatelessWidget {
                 borderRadius: BorderRadius.all(Radius.circular(5)),
                 child: Image.network(
                   RestClient.baseUrl + routes[index].thumbnail)),
-              title: Text(routes[index].name,
+              title: Text(routes[index].name.toUpperCase(),
                 style: themeData.textTheme.headline6),
               subtitle: Text(description,
                 style: themeData.textTheme.subtitle2,
