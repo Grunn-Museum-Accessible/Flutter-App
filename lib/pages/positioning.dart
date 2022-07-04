@@ -13,7 +13,7 @@ class PositioningScreen extends StatefulWidget {
   final Route route;
 
   PositioningScreen({Key? key, required this.device, required this.route})
-      : super(key: key);
+    : super(key: key);
 
   @override
   PositioningScreenState createState() => PositioningScreenState();
@@ -24,7 +24,7 @@ class PositioningScreenState extends State<PositioningScreen> {
   late PositioningVisualiser positionVisualizer;
   late final SoundController _controller;
   String soundFile =
-      'https://sfmygozkc1b6pom6ld5krvdok3dpc2eh.ui.nabu.casa/local/ping.mp3';
+    'https://sfmygozkc1b6pom6ld5krvdok3dpc2eh.ui.nabu.casa/local/ping.mp3';
 
   List<double> anchor1 = [20, 20, 20];
   List<double> anchor2 = [20, 350, 20];
