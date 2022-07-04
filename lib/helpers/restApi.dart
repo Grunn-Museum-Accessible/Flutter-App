@@ -5,7 +5,7 @@ import 'package:app/libs/positioning/positioning.dart';
 import 'package:http/http.dart' as http;
 
 class RestClient {
-  static String baseUrl = 'http://192.168.1.53';
+  static String baseUrl = 'http://192.168.29.152';
 
   Future<List<Route>> getAll() async {
     var response;
