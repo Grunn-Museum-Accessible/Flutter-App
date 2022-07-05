@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
@@ -14,11 +15,37 @@ import 'package:permission_handler/permission_handler.dart';
 // ignore: must_be_immutable
 class NewRoute extends StatefulWidget {
   Route route = Route(
-    'JR Chronicles',
-    'Ontdek de iconische projecten van de internationale bekende franse kunstenaar JR',
-    'https://www.groningermuseum.nl/media/2/Tentoonstellingen/2021/JR/_1200x670_crop_center-center_95_none/JR.-GIANTS-Kikito-and-the-Border-Patrol-Tecate-Mexico-U.S.A.-2017.jpg',
-    <Line>[],
-  );
+      'JR Chronicles',
+      'Ontdek de iconische projecten van de internationale bekende franse kunstenaar JR',
+      'https://www.groningermuseum.nl/media/2/Tentoonstellingen/2021/JR/_1200x670_crop_center-center_95_none/JR.-GIANTS-Kikito-and-the-Border-Patrol-Tecate-Mexico-U.S.A.-2017.jpg',
+      [
+        Line(
+            Point(60, 75),
+            Point(60, 185,
+                soundRange: 30,
+                soundFile: '/storage/emulated/0/Download/jr-1.mp3'),
+            50),
+        Line(
+            Point(60, 185,
+                soundRange: 30,
+                soundFile: '/storage/emulated/0/Download/jr-1.mp3'),
+            Point(135, 315),
+            30),
+        Line(Point(135, 315), Point(300, 315), 30),
+        Line(
+            Point(300, 315),
+            Point(300, 460,
+                soundRange: 30,
+                soundFile: '/storage/emulated/0/Download/jr-2.mp3'),
+            40),
+        Line(
+            Point(300, 460,
+                soundRange: 30,
+                soundFile: '/storage/emulated/0/Download/jr-2.mp3'),
+            Point(190, 600),
+            40),
+        Line(Point(190, 600), Point(60, 600), 30)
+      ]);
 
   NewRoute({Key? key}) : super(key: key);
   @override
@@ -62,20 +89,24 @@ class NewRouteState extends State<NewRoute> {
           ),
         ),
       ),
-      floatingActionButton: Visibility(
-        visible: widget.route.routePartNotifier.value.isNotEmpty &&
-            name.length > 1 &&
-            desc.length > 1 &&
-            true,
-        // image != '',
-        child: FloatingActionButton.extended(
-          // color: Colors.blue,
-          onPressed: () {
-            updateServer();
-          },
-          label: const Text('Opslaan'),
-          icon: const Icon(Icons.save),
-        ),
+      floatingActionButton: Builder(
+        builder: (context) {
+          return Visibility(
+            visible: widget.route.routePartNotifier.value.isNotEmpty &&
+                name.length > 1 &&
+                desc.length > 1 &&
+                true,
+            // image != '',
+            child: FloatingActionButton.extended(
+              // color: Colors.blue,
+              onPressed: () {
+                updateServer(context);
+              },
+              label: const Text('Opslaan'),
+              icon: const Icon(Icons.save),
+            ),
+          );
+        },
       ),
       body: ListView(
         children: [
@@ -252,7 +283,7 @@ class NewRouteState extends State<NewRoute> {
     );
   }
 
-  updateServer([String path = '/create']) {
+  updateServer(BuildContext context, [String path = '/create']) {
     http.MultipartRequest req =
         http.MultipartRequest('POST', Uri.http(serverUrl, path));
 
@@ -285,16 +316,41 @@ class NewRouteState extends State<NewRoute> {
     req.send().then((http.StreamedResponse resS) async {
       //TODO: show errors and completion
       var res = await http.Response.fromStream(resS);
-      if (res.statusCode == 200) {
+
+      String usermsg = '';
+
+      log('[HTTP] errror updating route: ' +
+          res.statusCode.toString() +
+          ' | ' +
+          res.body.toString());
+
+      if (res.statusCode == 201) {
         setState(() {
           widget.route = Route.fromString(res.body.toString());
         });
+        usermsg = 'De route is succesfol aangemaakt';
       } else {
         log('[HTTP] errror updating route: ' +
             res.statusCode.toString() +
             ' | ' +
             res.body.toString());
+        if (res.statusCode == 400) {
+          switch (jsonDecode(res.body.toString())['message']) {
+            case 'No route name given':
+              usermsg = 'ER is geen titel ingevoerd';
+              break;
+            case 'Route name already in use':
+              usermsg = 'Een route met deze naam bestaat al';
+              break;
+            case 'No file selected for uploading':
+              usermsg = 'ir is geen afbeelding toegevoegd aan de route';
+              break;
+            default:
+              usermsg = 'er is iets fout gegaan. probeer later opnieuw';
+          }
+        }
       }
+      Scaffold.of(context).showSnackBar(SnackBar(content: Text(usermsg)));
     });
   }
 }

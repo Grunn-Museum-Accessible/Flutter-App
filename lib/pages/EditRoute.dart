@@ -33,8 +33,11 @@ class EditRouteState extends State<EditRoute> {
   String desc = '';
   String image = '';
 
+  late BuildContext context;
+
   @override
   Widget build(BuildContext context) {
+    this.context = context;
     return Scaffold(
       backgroundColor: theme.background,
       appBar: AppBar(
@@ -48,17 +51,19 @@ class EditRouteState extends State<EditRoute> {
           ),
         ),
       ),
-      floatingActionButton: Visibility(
-        visible: (widget.route.name != name) ||
-            (widget.route.description != desc) ||
-            image != '',
-        child: FloatingActionButton.extended(
-          // color: Colors.blue,
-          onPressed: () {
-            updateServer();
-          },
-          label: const Text('Opslaan'),
-          icon: const Icon(Icons.save),
+      floatingActionButton: Builder(
+        builder: (BuildContext context) => Visibility(
+          visible: (widget.route.name != name) ||
+              (widget.route.description != desc) ||
+              image != '',
+          child: FloatingActionButton.extended(
+            // color: Colors.blue,
+            onPressed: () {
+              updateServer(context);
+            },
+            label: const Text('Opslaan'),
+            icon: const Icon(Icons.save),
+          ),
         ),
       ),
       body: ListView(
@@ -212,11 +217,11 @@ class EditRouteState extends State<EditRoute> {
     );
   }
 
-  updateServer([String path = '/update']) {
+  updateServer(BuildContext context, [String path = '/update']) {
     http.MultipartRequest req =
         http.MultipartRequest('POST', Uri.http(serverUrl, path));
 
-    req.fields['name'] = widget.route.name;
+    req.fields['name'] = widget.route.name + "dgfsdgfs ";
     req.fields['new_name'] = name;
     req.fields['new_description'] = desc;
 
@@ -233,30 +238,36 @@ class EditRouteState extends State<EditRoute> {
 
     req.send().then((http.StreamedResponse resS) async {
       var res = await http.Response.fromStream(resS);
+      String usermsg = '';
+      log('[HTTP] errror updating route: ' +
+          res.statusCode.toString() +
+          ' | ' +
+          res.body.toString());
       if (res.statusCode == 200) {
-        setState(() {
-          widget.route = Route.fromString(res.body.toString());
-        });
+        if (jsonDecode(res.body)['message'] == 'Nothing to update') {
+          usermsg = 'De route is geupdate';
+        } else {
+          try {
+            setState(() {
+              widget.route = Route.fromString(res.body.toString());
+            });
+            usermsg = 'De route is geupdate';
+          } catch (_) {
+            usermsg = 'er is iets fout gegaan. probeer later opnieuw';
+          }
+        }
       } else {
-        log('[HTTP] errror updating route: ' +
-            res.statusCode.toString() +
-            ' | ' +
-            res.body.toString());
-
         // show toast
         String errorMessage = jsonDecode(res.body)['message'];
-        String usermsg = '';
         switch (errorMessage) {
-          case 'could not find route':
+          case 'Could not find route':
             usermsg = 'De route was niet gevonden. probeer later opnieuw';
-            break;
-          case 'Nothing to update':
-            usermsg = 'De waardes zijn geupdate';
             break;
           default:
             usermsg = 'er is iets fout gegaan. probeer later opnieuw';
         }
       }
+      Scaffold.of(context).showSnackBar(SnackBar(content: Text(usermsg)));
     });
   }
 }

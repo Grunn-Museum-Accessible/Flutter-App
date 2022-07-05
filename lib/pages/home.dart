@@ -98,19 +98,17 @@ class HomeScreenState extends State<HomeScreen> {
               style: TextStyle(color: theme.text, fontSize: 24),
             ),
           ),
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: () async {
-                getAllRoutes();
+          RefreshIndicator(
+            onRefresh: () async {
+              getAllRoutes();
+            },
+            child: ListView.builder(
+              scrollDirection: Axis.vertical,
+              shrinkWrap: true,
+              itemCount: (routes ?? []).length,
+              itemBuilder: (context, index) {
+                return buildRouteItem(routes![index]);
               },
-              child: ListView.builder(
-                scrollDirection: Axis.vertical,
-                shrinkWrap: true,
-                itemCount: (routes ?? []).length,
-                itemBuilder: (context, index) {
-                  return buildRouteItem(routes![index]);
-                },
-              ),
             ),
           )
         ],
