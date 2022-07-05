@@ -1,5 +1,5 @@
 name: app
-description: A new Flutter project.
+description: Een app voor slechtziende bezoekers van het groninger museum
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
@@ -9,10 +9,19 @@ environment:
   sdk: ">=2.16.1 <3.0.0"
 
 dependencies:
-  audioplayers: ^0.20.1
+  audioplayers: ^1.0.1
   flutter:
     sdk: flutter
+  flutter_blue: 
+    git:
+      url: https://github.com/espresso3389/flutter_blue.git
+  flutter_compass: ^0.7.0
+  flutter_inappwebview: ^5.4.3+7
   flutter_svg: ^1.0.3
+  flutter_vibrate: ^1.3.0
+  nfc_manager: ^3.1.1
+  p5: ^0.1.0
+  permission_handler: ^9.2.0
 
 
 dev_dependencies:
@@ -33,7 +42,7 @@ flutter:
   fonts:
     - family: Eurostile
       fonts:
-        - asset: fonts/EurostileBold.otf
-    - family: NueuHaasUnica
+        - asset: assets/fonts/Eurostile-Bold.ttf
+    - family: Neue Haas
       fonts:
-        - asset: fonts/NeueHaasUnicaRegular.ttf
+        - asset: assets/fonts/NeueHaas-Medium.ttf
